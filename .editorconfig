@@ -1,0 +1,4 @@
+root = true
+
+[Docs/wiki/**/*.md]
+charset = utf-8
