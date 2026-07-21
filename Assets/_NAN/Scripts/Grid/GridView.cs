@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+using System;
 
 /// <summary>
 /// 화면에 격자에 따라 셀을 만들고 표현하는 역할을 수행하는 클래스
@@ -10,6 +11,9 @@ public sealed class GridView : MonoBehaviour
 
     [SerializeField]
     private float cellSize = 1f;
+    
+    //각 셀 클릭 이벤트를 중계하는 이벤트
+    public event Action<Vector2Int> CellClicked;
 
     private CellView[] cellViews;
 
@@ -50,6 +54,7 @@ public sealed class GridView : MonoBehaviour
         {
             if (cellView != null)
             {
+                cellView.Clicked -= HandleCellClicked;
                 Destroy(cellView.gameObject);
             }
         }
@@ -73,6 +78,7 @@ public sealed class GridView : MonoBehaviour
             GridToLocalPosition(gridPosition);
 
         cellView.Initialize(gridPosition);
+        cellView.Clicked += HandleCellClicked;
 
         int index =
             gridPosition.y * gridState.Width
@@ -81,6 +87,16 @@ public sealed class GridView : MonoBehaviour
         //cellViews 배열에 만들어진 셀을 저장
         cellViews[index] = cellView;
     }
+    
+    /// <summary>
+    /// 셀 클릭시 해당하는 셀 좌표를 넘겨 이벤트 호출
+    /// </summary>
+    /// <param name="position">셀의 논리 좌표</param>
+    private void HandleCellClicked(Vector2Int position)
+    {
+        CellClicked?.Invoke(position);
+    }
+
 
     /// <summary>
     /// grid에 cell좌표에 대응하는 실제 transform position을 반환하는 함수
@@ -92,5 +108,10 @@ public sealed class GridView : MonoBehaviour
             gridPosition.x * cellSize,
             gridPosition.y * cellSize,
             0f);
+    }
+    
+    private void OnDestroy()
+    {
+        ClearGrid();
     }
 }
