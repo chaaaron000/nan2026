@@ -144,7 +144,7 @@ Transform:
   m_GameObject: {fileID: 39035446}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 1104.2667, y: 530.7518, z: 0}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -549,6 +549,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::GridView
   cellPrefab: {fileID: 2765101566019666708, guid: 0fe0e343b11d60241b71edeb145affd8, type: 3}
   cellSize: 1
+  wallPrefab: {fileID: 4093090250942324571, guid: 54e79b5935054a41a06542649af917fc, type: 3}
+  wallThickness: 0.1
 --- !u!4 &1052171772
 Transform:
   m_ObjectHideFlags: 0
@@ -558,7 +560,7 @@ Transform:
   m_GameObject: {fileID: 1052171770}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -1104.2667, y: -530.7518, z: 0}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []

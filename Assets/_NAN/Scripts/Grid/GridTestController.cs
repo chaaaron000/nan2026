@@ -47,7 +47,8 @@ public sealed class GridTestController : MonoBehaviour
         gridState =
             new GridState(
                 stageData.Width,
-                stageData.Height);
+                stageData.Height,
+                stageData.WallPositions);
 
         // CellView가 먼저 생성되어야
         // 이후 물감 사용 결과를 화면에 표시할 수 있다.

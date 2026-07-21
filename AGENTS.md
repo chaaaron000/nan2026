@@ -31,3 +31,10 @@
 - `UnityEngine.Debug` 또는 `Debug`의 `Log`, `LogWarning`, `LogError`, `LogException`, `LogFormat`, `LogWarningFormat`, `LogErrorFormat`, `Assert`를 직접 호출하지 않는다.
 - 각 호출은 대응하는 `DebugConsole.Log`, `DebugConsole.LogWarning`, `DebugConsole.LogError`, `DebugConsole.LogException`, `DebugConsole.LogFormat`, `DebugConsole.LogWarningFormat`, `DebugConsole.LogErrorFormat`, `DebugConsole.Assert`로 작성한다.
 - 새 로그 함수를 작성하거나 기존 로그 코드를 수정할 때도 `DebugConsole.cs`의 빌드 조건과 오버로드 규칙을 따른다.
+
+## C# 주석 작성
+
+- C# 코드를 새로 구현하거나 기존 코드를 수정할 때, 새로 추가하거나 변경한 `public` 클래스, 구조체, 인터페이스, enum, 생성자, 메서드, 프로퍼티, 필드, 이벤트에는 한국어 XML 문서 주석 `<summary>`를 작성한다.
+- 공개 API의 `<summary>`에는 해당 API의 역할과 동작을 호출자 관점에서 설명한다.
+- 좌표 변환, 상태 전이, 유효성 검사, 중복 방지, 알고리즘의 핵심 분기처럼 이해하기 어려운 중요 로직에는 의도와 이유를 설명하는 한국어 일반 주석을 작성한다.
+- 코드 내용을 그대로 읽어주는 불필요한 주석은 추가하지 않고, 구현만 보고 알기 어려운 규칙과 제약을 중심으로 작성한다.
