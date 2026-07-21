@@ -18,4 +18,6 @@ MonoBehaviour:
   - paintType: 0
     range: 2
   - paintType: 0
-    range: 2
+    range: 4
+  - paintType: 1
+    range: 3

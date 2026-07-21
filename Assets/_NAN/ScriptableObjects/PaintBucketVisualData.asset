@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 52decba4610a409fb693ef2fa9733caa, type: 3}
   m_Name: PaintBucketVisualData
   m_EditorClassIdentifier: Assembly-CSharp::PaintBucketVisualData
-  redSprite: {fileID: 0}
-  greenSprite: {fileID: 0}
-  blueSprite: {fileID: 0}
-  clearSprite: {fileID: 0}
+  redSprite: {fileID: 3244178464023294858, guid: a40c39d1363b03f47b3df9a249311bcf, type: 3}
+  greenSprite: {fileID: 10905, guid: 0000000000000000f000000000000000, type: 0}
+  blueSprite: {fileID: 10905, guid: 0000000000000000f000000000000000, type: 0}
+  clearSprite: {fileID: 10905, guid: 0000000000000000f000000000000000, type: 0}
