@@ -14,4 +14,5 @@
 
 | Article | Summary | Updated |
 |---------|---------|---------|
-| [격자 핵심 클래스 역할과 책임](implementation/격자%20핵심%20클래스%20역할과%20책임.md) | GridState, GridView, CellView, PaintState의 현재 역할과 협력 구조 | 2026-07-20 |
+| [격자 핵심 클래스 역할과 책임](implementation/격자%20핵심%20클래스%20역할과%20책임.md) | GridState, GridView, CellView, PaintState의 현재 역할과 협력 구조 | 2026-07-21 |
+| [물감통 클래스 역할과 책임](implementation/물감통%20클래스%20역할과%20책임.md) | PaintBucket 데이터부터 Generator, View, Controller의 생성·선택·소모·복원 책임과 커맨드 확장 경계 | 2026-07-21 |
