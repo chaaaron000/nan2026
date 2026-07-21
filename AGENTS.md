@@ -24,3 +24,10 @@
 - Play Mode 진입·종료, Asset Database 새로고침, 메뉴 실행, 테스트, 씬 또는 GameObject 상태 확인 등 Unity Editor 조작은 `unity-cli`를 사용한다.
 - 여러 Unity Editor 인스턴스가 실행 중일 수 있으므로 모든 `unity-cli` 명령에 `--project "."`을 지정하여 현재 프로젝트의 인스턴스를 명시적으로 선택한다.
 - 에디터 조작 전에는 `unity-cli --project "." status`로 연결 상태와 대상 프로젝트를 확인한다.
+
+## Unity 로그 작성
+
+- Unity 스크립트에서 로그, 경고, 오류, 예외, Assert를 출력할 때는 `Assets/_NAN/Scripts/DebugConsole.cs`에 정의된 래퍼를 사용한다.
+- `UnityEngine.Debug` 또는 `Debug`의 `Log`, `LogWarning`, `LogError`, `LogException`, `LogFormat`, `LogWarningFormat`, `LogErrorFormat`, `Assert`를 직접 호출하지 않는다.
+- 각 호출은 대응하는 `DebugConsole.Log`, `DebugConsole.LogWarning`, `DebugConsole.LogError`, `DebugConsole.LogException`, `DebugConsole.LogFormat`, `DebugConsole.LogWarningFormat`, `DebugConsole.LogErrorFormat`, `DebugConsole.Assert`로 작성한다.
+- 새 로그 함수를 작성하거나 기존 로그 코드를 수정할 때도 `DebugConsole.cs`의 빌드 조건과 오버로드 규칙을 따른다.
