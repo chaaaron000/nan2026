@@ -26,8 +26,9 @@ public sealed class GridView : MonoBehaviour
 
     private GameObject[] wallObjects;
 
-    // 생성된 격자의 가로 크기, cell 좌표 계산에 사용
+    // 생성된 격자의 크기, cell 좌표 계산에 사용
     private int gridWidth;
+    private int gridHeight;
 
     /// <summary>
     /// grid의 가로 세로에 따라 셀들을 만드는 함수
@@ -37,6 +38,7 @@ public sealed class GridView : MonoBehaviour
         ClearGrid();
 
         gridWidth = gridState.Width;
+        gridHeight = gridState.Height;
 
         cellViews = new CellView[gridState.Width * gridState.Height];
 
@@ -171,28 +173,12 @@ public sealed class GridView : MonoBehaviour
             throw new InvalidOperationException("Grid has not been created.");
         }
 
-        int index = GridToIndex(position);
+        int index = GridIndexUtility.ToIndex(
+            position,
+            gridWidth,
+            gridHeight);
 
         cellViews[index].SetPaint(paintState);
-    }
-
-    /// <summary>
-    /// grid에 cell좌표에 대응하는 cellViews 리스트의 인덱스를 반환하는 함수
-    /// </summary>
-    private int GridToIndex(Vector2Int position)
-    {
-        int height = cellViews.Length / gridWidth;
-
-        if (position.x < 0 || position.x >= gridWidth || position.y < 0 || position.y >= height)
-        {
-            throw new ArgumentOutOfRangeException(
-                nameof(position),
-                position,
-                "Position is outside the grid."
-            );
-        }
-
-        return position.y * gridWidth + position.x;
     }
 
     private void OnDestroy()

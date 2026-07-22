@@ -83,7 +83,11 @@ public sealed class GridState
     /// </summary>
     public PaintState GetPaint(Vector2Int position)
     {
-        int index = PositionToIndex(position);
+        int index = GridIndexUtility.ToIndex(
+            position,
+            Width,
+            Height);
+        
         return cells[index];
     }
 
@@ -92,8 +96,11 @@ public sealed class GridState
     /// </summary>
     public PaintState AddPaint(Vector2Int position, PaintState paint)
     {
-        int index = PositionToIndex(position);
-
+        int index = GridIndexUtility.ToIndex(
+            position,
+            Width,
+            Height);
+        
         cells[index] |= paint;
 
         return cells[index];
@@ -104,7 +111,10 @@ public sealed class GridState
     /// </summary>
     public PaintState ClearPaint(Vector2Int position)
     {
-        int index = PositionToIndex(position);
+        int index = GridIndexUtility.ToIndex(
+            position,
+            Width,
+            Height);
 
         cells[index] = PaintState.Empty;
 
@@ -116,27 +126,12 @@ public sealed class GridState
         Array.Clear(cells, 0, cells.Length);
     }
 
-    /// <summary>
-    /// Vector2형태의 position을 받아 cells[]에 넣을 인덱스로 변환해주는 함수
-    /// </summary>
-    private int PositionToIndex(Vector2Int position)
-    {
-        //position이 범위를 벗어나면 오류 반환
-        if (!IsInside(position))
-        {
-            throw new ArgumentOutOfRangeException(
-                nameof(position),
-                position,
-                $"Position {position} is outside the " + $"{Width}x{Height} grid."
-            );
-        }
-
-        return position.y * Width + position.x;
-    }
-
     public bool IsInside(Vector2Int position)
     {
-        return position.x >= 0 && position.x < Width && position.y >= 0 && position.y < Height;
+        return GridIndexUtility.IsInside(
+            position,
+            Width,
+            Height);
     }
 
     /// <summary>

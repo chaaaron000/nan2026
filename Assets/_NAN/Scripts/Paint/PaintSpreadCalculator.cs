@@ -8,10 +8,33 @@ using UnityEngine;
 /// </summary>
 public sealed class PaintSpreadCalculator
 {
+    // BFS Queue에 저장할 셀 좌표와 최단 거리
+    private readonly struct SearchNode
+    {
+        public Vector2Int Position { get; }
+        public int Distance { get; }
+
+        public SearchNode(
+            Vector2Int position,
+            int distance)
+        {
+            Position = position;
+            Distance = distance;
+        }
+    }
+    
+    // 모든 셀에서 검사할 네 방향
+    private static readonly GridDirection[] Directions =
+    {
+        GridDirection.UP,
+        GridDirection.RIGHT,
+        GridDirection.DOWN,
+        GridDirection.LEFT
+    };
+
     /// <summary>
-    /// 시작 셀로부터 물감 범위 안에 있는 모든 좌표를 반환한다.
-    /// 현재는 임시 구현으로, O(n^2)로 가능한 칸을 순회하지만,
-    /// 후에는 bfs를 이용해 벽에 막히는 걸 고려해서 수정해야한다.
+    /// 시작 셀을 포함해 최대 range - 1회 이동하여
+    /// 도달할 수 있는 모든 셀 좌표를 반환한다.
     /// </summary>
     public IReadOnlyList<Vector2Int> Calculate(
         GridState gridState,
@@ -40,31 +63,89 @@ public sealed class PaintSpreadCalculator
                 "Range must be at least one.");
         }
 
+        int cellCount =
+            gridState.Width * gridState.Height;
+
+        // 영향받는 좌표들을 담아 반환할 리스트
         List<Vector2Int> affectedPositions =
             new();
 
-        int maxDistance = range - 1;
+        // 순회용 큐 생성
+        Queue<SearchNode> queue =
+            new();
 
-        for (int y = 0;
-             y < gridState.Height;
-             y++)
+        // Vector2Int HashSet보다 셀 인덱스 배열을 사용하는 편이
+        // 현재처럼 고정 크기 격자에서는 조회와 메모리 면에서 단순하다.
+        bool[] visited =
+            new bool[cellCount];
+
+        int maxDistance =
+            range - 1;
+
+        int originIndex =
+            GridIndexUtility.ToIndex(
+                origin,
+                gridState.Width,
+                gridState.Height);
+
+        visited[originIndex] = true;
+
+        queue.Enqueue(
+            new SearchNode(
+                origin,
+                0));
+
+        // BFS, 상하좌우 방향으로 포지션을 queue에 넣어가며 순회
+        while (queue.Count > 0)
         {
-            for (int x = 0;
-                 x < gridState.Width;
-                 x++)
+            SearchNode current =
+                queue.Dequeue();
+
+            affectedPositions.Add(
+                current.Position);
+
+            // 현재 셀이 최대 거리에 도달했다면
+            // 결과에는 포함하되 이웃 셀로 더 확장하지 않는다.
+            if (current.Distance >= maxDistance)
             {
-                Vector2Int position =
-                    new Vector2Int(x, y);
+                continue;
+            }
 
-                // x이동 + y이동이 거리보다 넓으면 return
-                int distance =
-                    Mathf.Abs(position.x - origin.x)
-                    + Mathf.Abs(position.y - origin.y);
-
-                if (distance <= maxDistance)
+            // 네 방향으로 순회
+            foreach (GridDirection direction
+                     in Directions)
+            {
+                // 벽에 막히면 continue
+                if (!gridState.CanMove(
+                        current.Position,
+                        direction))
                 {
-                    affectedPositions.Add(position);
+                    continue;
                 }
+                
+                Vector2Int nextPosition =
+                    current.Position
+                    + direction.ToOffset();
+
+                int nextIndex =
+                    GridIndexUtility.ToIndex(
+                        nextPosition,
+                        gridState.Width,
+                        gridState.Height);
+
+                if (visited[nextIndex])
+                {
+                    continue;
+                }
+
+                // 같은 셀이 여러 경로를 통해 Queue에
+                // 중복 추가되지 않도록 삽입 시점에 방문 처리한다.
+                visited[nextIndex] = true;
+
+                queue.Enqueue(
+                    new SearchNode(
+                        nextPosition,
+                        current.Distance + 1));
             }
         }
 
