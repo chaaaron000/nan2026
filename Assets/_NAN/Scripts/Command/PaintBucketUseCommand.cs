@@ -30,6 +30,28 @@ public sealed class PaintBucketUseCommand : ICommand
     // 물감통의 영향을 받는 셀 좌표 계산기
     private readonly PaintSpreadCalculator
         spreadCalculator;
+    
+    // 커맨드로 인해 영향받은 좌표들의 전 상태를 저장하기 위한 구조체
+    private readonly struct PaintSnapshot
+    {
+        public Vector2Int Position { get; }
+        public PaintState PaintState { get; }
+
+        public PaintSnapshot(
+            Vector2Int position,
+            PaintState paintState)
+        {
+            Position = position;
+            PaintState = paintState;
+        }
+    }
+
+    // 커맨드로 인해 영향받은 좌표들 상태를 저장하는 리스트
+    private readonly List<PaintSnapshot>
+        previousPaintStates = new();
+
+    // 이 커맨드의 실행 여부
+    private bool isExecuted;
 
     /// <summary>
     /// 물감통 사용에 필요한 데이터와 실행 대상을 설정한다.
@@ -78,6 +100,11 @@ public sealed class PaintBucketUseCommand : ICommand
     /// </returns>
     public bool Execute()
     {
+        if (isExecuted)
+        {
+            return false;
+        }
+        
         //칠해질 좌표들 계산
         IReadOnlyList<Vector2Int>
             affectedPositions =
@@ -86,43 +113,64 @@ public sealed class PaintBucketUseCommand : ICommand
                     origin,
                     bucket.Range);
 
-        PaintState paintState =
-            ConvertToPaintState(
-                bucket.PaintType);
-
+        // 이전 상태 혹시 모르니 비워둠
+        previousPaintStates.Clear();
+        
+        // 영향 받은 좌표들만 딕셔너리에 저장
+        foreach (Vector2Int position in affectedPositions)
+        {
+            previousPaintStates.Add(
+                new PaintSnapshot(
+                    position,
+                    gridState.GetPaint(position)));
+        }
+        
         // 같은 물감통으로 명령이 중복 실행되는 것을 막는다.
         if (!bucketController.Consume(bucketId))
         {
+            previousPaintStates.Clear();
             return false;
         }
-
+        
         //각 좌표별 색칠 명령을 gridstate에게 보냄.
         foreach (Vector2Int position
                  in affectedPositions)
         {
-            PaintState result =
-                ApplyPaint(
-                    position,
-                    paintState);
-
-            gridView.SetCellPaint(
+            PaintState result = ApplyPaint(
                 position,
-                result);
+                ConvertToPaintState(bucket.PaintType));
+
+            gridView.SetCellPaint(position, result);
         }
 
+        isExecuted = true;
         return true;
     }
 
     /// <summary>
-    /// 실행한 물감 사용 명령을 되돌린다.
-    /// 현재는 임시 구현으로 아무 작업도 수행하지 않는다.
+    /// 변경된 셀을 실행 전 상태로 되돌리고 사용한 물감통을 복원한다.
     /// </summary>
     public void Undo()
     {
-        // 추후 Execute에서 변경 전 셀 상태를 기록하고,
-        // 이곳에서 각 셀 상태와 물감통을 복원한다.
-        //
-        // bucketController.Restore(bucketId);
+        if (!isExecuted)
+        {
+            return;
+        }
+
+        foreach (PaintSnapshot snapshot
+                 in previousPaintStates)
+        {
+            gridState.SetPaint(
+                snapshot.Position,
+                snapshot.PaintState);
+
+            gridView.SetCellPaint(
+                snapshot.Position,
+                snapshot.PaintState);
+        }
+
+        bucketController.Restore(bucketId);
+        isExecuted = false;
     }
 
     private PaintState ApplyPaint(

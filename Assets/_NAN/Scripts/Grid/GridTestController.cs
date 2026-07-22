@@ -18,6 +18,10 @@ public sealed class GridTestController : MonoBehaviour
     [SerializeField]
     private PaintBucketController
         bucketController;
+    
+    // 커맨드 Controller
+    [SerializeField]
+    private CommandController commandController;
 
     // 현재 테스트 격자의 실제 논리 상태
     private GridState gridState;
@@ -44,6 +48,8 @@ public sealed class GridTestController : MonoBehaviour
     /// </summary>
     public void CreateTestGrid()
     {
+        commandController.ClearHistory();
+        
         gridState =
             new GridState(
                 stageData.Width,
@@ -78,6 +84,6 @@ public sealed class GridTestController : MonoBehaviour
                 bucketController,
                 spreadCalculator);
 
-        command.Execute();
+        commandController.Execute(command);
     }
 }

@@ -105,6 +105,23 @@ public sealed class GridState
 
         return cells[index];
     }
+    
+    /// <summary>
+    /// 지정한 셀의 물감 상태를 전달받은 상태로 교체한다.
+    /// 커맨드 복원처럼 기존 상태를 정확히 덮어써야 할 때 사용한다.
+    /// </summary>
+    public PaintState SetPaint(
+        Vector2Int position,
+        PaintState paint)
+    {
+        int index = GridIndexUtility.ToIndex(
+            position,
+            Width,
+            Height);
+
+        cells[index] = paint;
+        return cells[index];
+    }
 
     /// <summary>
     /// pos에 해당하는 cell의 paintstate를 000으로 비우는 함수
