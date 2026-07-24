@@ -149,6 +149,7 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 1052171772}
+  - {fileID: 1702057107}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &45119778
@@ -394,6 +395,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::GridTestController
   stageData: {fileID: 11400000, guid: d54465e9b69cfdb44b630d6de59be772, type: 2}
   gridView: {fileID: 1052171771}
+  answerGridView: {fileID: 1702057106}
   bucketController: {fileID: 727864141}
   commandController: {fileID: 613329201}
 --- !u!4 &230329653
@@ -1571,6 +1573,54 @@ MonoBehaviour:
   m_ChildScaleWidth: 0
   m_ChildScaleHeight: 0
   m_ReverseArrangement: 0
+--- !u!1 &1702057105
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1702057107}
+  - component: {fileID: 1702057106}
+  m_Layer: 0
+  m_Name: AnswerGridView
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1702057106
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1702057105}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7637657077124ac78f6260f1c8e42943, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: Assembly-CSharp::GridView
+  cellPrefab: {fileID: 2765101566019666708, guid: 0fe0e343b11d60241b71edeb145affd8, type: 3}
+  cellSize: 1
+  wallPrefab: {fileID: 4093090250942324571, guid: 54e79b5935054a41a06542649af917fc, type: 3}
+  wallThickness: 0.1
+--- !u!4 &1702057107
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1702057105}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: -6.25, y: -1.56, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 39035447}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1715007706
 GameObject:
   m_ObjectHideFlags: 0

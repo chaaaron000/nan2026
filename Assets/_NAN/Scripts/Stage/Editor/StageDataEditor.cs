@@ -1,6 +1,8 @@
 using UnityEditor;
 using UnityEngine;
 
+using System.Collections.Generic;
+
 /// <summary>
 /// StageData 인스펙터에서 셀 경계를 클릭해
 /// 벽을 배치하거나 제거할 수 있게 표시한다.
@@ -15,6 +17,9 @@ public sealed class StageDataEditor : Editor
     private SerializedProperty heightProperty;
     private SerializedProperty paintBucketsProperty;
     private SerializedProperty wallPositionsProperty;
+    private SerializedProperty answerPaintStatesProperty;
+
+    private PaintState selectedAnswerPaint = PaintState.Empty;
 
     private void OnEnable()
     {
@@ -22,6 +27,7 @@ public sealed class StageDataEditor : Editor
         heightProperty = serializedObject.FindProperty("height");
         paintBucketsProperty = serializedObject.FindProperty("paintBuckets");
         wallPositionsProperty = serializedObject.FindProperty("wallPositions");
+        answerPaintStatesProperty = serializedObject.FindProperty("answerPaintStates");
     }
 
     /// <summary>
@@ -52,6 +58,12 @@ public sealed class StageDataEditor : Editor
                 ClearWalls();
             }
         }
+
+        EditorGUILayout.Space();
+        EditorGUILayout.LabelField("Answer Editor", EditorStyles.boldLabel);
+
+        DrawAnswerPalette();
+        DrawAnswerGrid();
 
         serializedObject.ApplyModifiedProperties();
     }
@@ -207,5 +219,155 @@ public sealed class StageDataEditor : Editor
 
         serializedObject.ApplyModifiedProperties();
         EditorUtility.SetDirty(target);
+    }
+
+    private void DrawAnswerPalette()
+    {
+        EditorGUILayout.BeginHorizontal();
+
+        foreach (PaintState paintState in AnswerPalette)
+        {
+            Color previousColor = GUI.backgroundColor;
+            GUI.backgroundColor = GetPaintColor(paintState);
+
+            string label = paintState == PaintState.Empty
+                ? "Empty"
+                : paintState.ToString();
+
+            if (GUILayout.Toggle(
+                    selectedAnswerPaint == paintState,
+                    label,
+                    "Button",
+                    GUILayout.MinWidth(58f)))
+            {
+                selectedAnswerPaint = paintState;
+            }
+
+            GUI.backgroundColor = previousColor;
+        }
+
+        EditorGUILayout.EndHorizontal();
+    }
+
+    private void DrawAnswerGrid()
+    {
+        int width = Mathf.Max(1, widthProperty.intValue);
+        int height = Mathf.Max(1, heightProperty.intValue);
+
+        Rect gridRect = GUILayoutUtility.GetRect(
+            width * CellSize,
+            height * CellSize,
+            GUILayout.ExpandWidth(false));
+
+        for (int y = 0; y < height; y++)
+        {
+            int displayY = height - 1 - y;
+
+            for (int x = 0; x < width; x++)
+            {
+                int index = y * width + x;
+
+                if (index >= answerPaintStatesProperty.arraySize)
+                {
+                    return;
+                }
+
+                SerializedProperty paintProperty =
+                    answerPaintStatesProperty.GetArrayElementAtIndex(index);
+                PaintState paintState =
+                    (PaintState)paintProperty.intValue;
+                Rect cellRect = new(
+                    gridRect.x + x * CellSize,
+                    gridRect.y + displayY * CellSize,
+                    CellSize,
+                    CellSize);
+                Color previousColor = GUI.backgroundColor;
+
+                GUI.backgroundColor = GetPaintColor(paintState);
+
+                if (GUI.Button(cellRect, GUIContent.none))
+                {
+                    Undo.RecordObject(target, "Paint Stage Answer Cell");
+                    paintProperty.intValue = (int)selectedAnswerPaint;
+                    serializedObject.ApplyModifiedProperties();
+                    EditorUtility.SetDirty(target);
+                }
+
+                GUI.backgroundColor = previousColor;
+            }
+        }
+
+        DrawAnswerWalls(gridRect, width, height);
+    }
+
+    private void DrawAnswerWalls(Rect gridRect, int width, int height)
+    {
+        Color wallColor = new(0.1f, 0.1f, 0.1f);
+        const float wallSize = 3f;
+
+        foreach (Vector2Int wallPosition in GetWallPositions())
+        {
+            bool isVertical = wallPosition.x % 2 != 0;
+            float x = isVertical
+                ? gridRect.x + wallPosition.x * 0.5f * CellSize
+                : gridRect.x + (wallPosition.x * 0.5f + 0.5f) * CellSize;
+            float y = isVertical
+                ? gridRect.y
+                  + (height - wallPosition.y * 0.5f - 0.5f) * CellSize
+                : gridRect.y
+                  + (height - (wallPosition.y + 1) * 0.5f) * CellSize;
+
+            Rect wallRect = isVertical
+                ? new Rect(
+                    x - wallSize * 0.5f,
+                    y - CellSize * 0.5f,
+                    wallSize,
+                    CellSize)
+                : new Rect(
+                    x - CellSize * 0.5f,
+                    y - wallSize * 0.5f,
+                    CellSize,
+                    wallSize);
+
+            EditorGUI.DrawRect(wallRect, wallColor);
+        }
+    }
+
+    private IEnumerable<Vector2Int> GetWallPositions()
+    {
+        for (int index = 0; index < wallPositionsProperty.arraySize; index++)
+        {
+            yield return wallPositionsProperty
+                .GetArrayElementAtIndex(index)
+                .vector2IntValue;
+        }
+    }
+
+    private static readonly PaintState[] AnswerPalette =
+    {
+        PaintState.Empty,
+        PaintState.Red,
+        PaintState.Green,
+        PaintState.Blue,
+        PaintState.Yellow,
+        PaintState.Cyan,
+        PaintState.Magenta,
+        PaintState.White,
+    };
+
+    private static Color GetPaintColor(PaintState paintState)
+    {
+        return paintState switch
+        {
+            PaintState.Empty => new Color(0.25f, 0.25f, 0.25f),
+            PaintState.Red => Color.red,
+            PaintState.Green => Color.green,
+            PaintState.Blue => Color.blue,
+            PaintState.Yellow => Color.yellow,
+            PaintState.Cyan => Color.cyan,
+            PaintState.Magenta => Color.magenta,
+            PaintState.White => Color.white,
+            _ => Color.black,
+        };
     }
 }

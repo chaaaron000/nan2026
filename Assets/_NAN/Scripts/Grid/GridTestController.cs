@@ -14,6 +14,10 @@ public sealed class GridTestController : MonoBehaviour
     [SerializeField]
     private GridView gridView;
 
+    // 정답을 읽기 전용으로 표시하는 좌측 격자 View
+    [SerializeField]
+    private GridView answerGridView;
+
     // 물감통 생성과 선택을 관리할 Controller
     [SerializeField]
     private PaintBucketController
@@ -25,6 +29,9 @@ public sealed class GridTestController : MonoBehaviour
 
     // 현재 테스트 격자의 실제 논리 상태
     private GridState gridState;
+
+    // 현재 플레이 보드와 정답의 일치 여부를 확인하는 판정기
+    private StageClearChecker stageClearChecker;
 
     // 현재는 벽을 고려하지 않는 임시 확산 계산기
     private readonly PaintSpreadCalculator
@@ -60,6 +67,27 @@ public sealed class GridTestController : MonoBehaviour
         // 이후 물감 사용 결과를 화면에 표시할 수 있다.
         gridView.CreateGrid(gridState);
 
+        GridState answerGridState =
+            new GridState(
+                stageData.Width,
+                stageData.Height,
+                stageData.WallPositions);
+
+        answerGridView.CreateGrid(
+            answerGridState,
+            false);
+        answerGridView.SetCellPaintStates(
+            stageData.AnswerPaintStates);
+
+        if (stageClearChecker != null)
+        {
+            stageClearChecker.StageCleared -= HandleStageCleared;
+        }
+
+        stageClearChecker = new StageClearChecker(
+            stageData.AnswerPaintStates);
+        stageClearChecker.StageCleared += HandleStageCleared;
+
         bucketController.Initialize(
             stageData.PaintBuckets);
     }
@@ -84,6 +112,14 @@ public sealed class GridTestController : MonoBehaviour
                 bucketController,
                 spreadCalculator);
 
-        commandController.Execute(command);
+        if (commandController.Execute(command))
+        {
+            stageClearChecker.Check(gridState);
+        }
+    }
+
+    private void HandleStageCleared()
+    {
+        DebugConsole.Log("Stage cleared.");
     }
 }

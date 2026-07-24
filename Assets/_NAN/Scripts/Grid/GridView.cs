@@ -1,6 +1,8 @@
 ﻿using System;
 using UnityEngine;
 
+using System.Collections.Generic;
+
 /// <summary>
 /// 화면에 격자에 따라 셀을 만들고 표현하는 역할을 수행하는 클래스
 /// </summary>
@@ -31,9 +33,13 @@ public sealed class GridView : MonoBehaviour
     private int gridHeight;
 
     /// <summary>
-    /// grid의 가로 세로에 따라 셀들을 만드는 함수
+    /// 격자 상태에 따라 셀과 벽을 생성하고 상호작용 여부를 설정한다.
     /// </summary>
-    public void CreateGrid(GridState gridState)
+    /// <param name="gridState">생성할 격자의 크기와 벽 상태.</param>
+    /// <param name="interactable">true면 생성된 셀이 클릭 이벤트를 전달한다.</param>
+    public void CreateGrid(
+        GridState gridState,
+        bool interactable = true)
     {
         ClearGrid();
 
@@ -48,7 +54,10 @@ public sealed class GridView : MonoBehaviour
             {
                 Vector2Int gridPosition = new Vector2Int(x, y);
 
-                CreateCell(gridState, gridPosition);
+                CreateCell(
+                    gridState,
+                    gridPosition,
+                    interactable);
             }
         }
 
@@ -92,7 +101,10 @@ public sealed class GridView : MonoBehaviour
     /// <summary>
     /// 셀 하나를 생성하는 함수
     /// </summary>
-    private void CreateCell(GridState gridState, Vector2Int gridPosition)
+    private void CreateCell(
+        GridState gridState,
+        Vector2Int gridPosition,
+        bool interactable)
     {
         CellView cellView = Instantiate(cellPrefab, transform);
 
@@ -100,7 +112,12 @@ public sealed class GridView : MonoBehaviour
         cellView.transform.localPosition = GridToLocalPosition(gridPosition);
 
         cellView.Initialize(gridPosition);
-        cellView.Clicked += HandleCellClicked;
+        cellView.SetInteractable(interactable);
+
+        if (interactable)
+        {
+            cellView.Clicked += HandleCellClicked;
+        }
 
         int index = gridPosition.y * gridState.Width + gridPosition.x;
 
@@ -179,6 +196,35 @@ public sealed class GridView : MonoBehaviour
             gridHeight);
 
         cellViews[index].SetPaint(paintState);
+    }
+
+    /// <summary>
+    /// 행 우선 방식의 셀 상태 목록을 현재 생성된 모든 셀에 한 번에 표시한다.
+    /// </summary>
+    /// <param name="paintStates">격자 셀 수와 같은 길이의 행 우선 셀 상태 목록.</param>
+    public void SetCellPaintStates(IReadOnlyList<PaintState> paintStates)
+    {
+        if (cellViews == null)
+        {
+            throw new InvalidOperationException("Grid has not been created.");
+        }
+
+        if (paintStates == null)
+        {
+            throw new ArgumentNullException(nameof(paintStates));
+        }
+
+        if (paintStates.Count != cellViews.Length)
+        {
+            throw new ArgumentException(
+                $"Paint state count must be {cellViews.Length}, but was {paintStates.Count}.",
+                nameof(paintStates));
+        }
+
+        for (int index = 0; index < cellViews.Length; index++)
+        {
+            cellViews[index].SetPaint(paintStates[index]);
+        }
     }
 
     private void OnDestroy()

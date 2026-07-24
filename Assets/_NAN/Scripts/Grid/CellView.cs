@@ -15,6 +15,9 @@ public sealed class CellView : MonoBehaviour, IPointerClickHandler
     
     // 셀의 Sprite 색상을 변경할 Renderer, 임시용으로 물감 사용을 처리하기 위해 사용.
     private SpriteRenderer spriteRenderer;
+
+    // 정답 패널처럼 셀 클릭을 무시해야 하는 View인지 나타낸다.
+    private bool isInteractable = true;
     
     private void Awake()
     {
@@ -34,12 +37,26 @@ public sealed class CellView : MonoBehaviour, IPointerClickHandler
     }
 
     /// <summary>
+    /// 셀 클릭 입력을 받을지 설정한다.
+    /// </summary>
+    /// <param name="interactable">true면 클릭 이벤트를 발생시킨다.</param>
+    public void SetInteractable(bool interactable)
+    {
+        isInteractable = interactable;
+    }
+
+    /// <summary>
     /// 마우스 클릭 또는 터치 입력을 받아
     /// 셀 클릭 이벤트를 발생시킨다.
     /// </summary>
     public void OnPointerClick(
         PointerEventData eventData)
     {
+        if (!isInteractable)
+        {
+            return;
+        }
+
         Clicked?.Invoke(GridPosition);
     }
 
