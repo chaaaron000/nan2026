@@ -55,6 +55,9 @@ public sealed class GridTestController : MonoBehaviour
     /// </summary>
     public void CreateTestGrid()
     {
+        SoundManager.Instance?.PlayBgm(
+            SoundKeys.StageBgm);
+
         commandController.ClearHistory();
         
         gridState =
@@ -111,6 +114,11 @@ public sealed class GridTestController : MonoBehaviour
                 gridView,
                 bucketController,
                 spreadCalculator);
+
+        // 선택된 물감통과 셀 입력이 이미 검증된 이벤트이므로,
+        // 범위 계산과 화면 갱신보다 먼저 입력 피드백을 재생한다.
+        SoundManager.Instance?.PlaySfx(
+            SoundKeys.PaintBucketUse);
 
         if (commandController.Execute(command))
         {

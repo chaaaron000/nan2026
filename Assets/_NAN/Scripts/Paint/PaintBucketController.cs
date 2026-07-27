@@ -206,6 +206,9 @@ public sealed class PaintBucketController
             return;
         }
 
+        SoundManager.Instance?.PlaySfx(
+            SoundKeys.PaintBucketSelect);
+
         // 선택된 물감통을 다시 누르면 선택을 해제한다.
         if (selectedBucket == clickedEntry)
         {
