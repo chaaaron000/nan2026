@@ -131,7 +131,7 @@ public sealed class PaintBucketUseCommand : ICommand
             previousPaintStates.Clear();
             return false;
         }
-        
+
         //각 좌표별 색칠 명령을 gridstate에게 보냄.
         foreach (Vector2Int position
                  in affectedPositions)
