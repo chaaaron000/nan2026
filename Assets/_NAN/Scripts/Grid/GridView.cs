@@ -21,6 +21,9 @@ public sealed class GridView : MonoBehaviour
     [Min(0f)]
     private float wallThickness = 0.1f;
 
+    [SerializeField]
+    private AccessibilityDisplaySettings accessibilityDisplaySettings;
+
     //각 셀 클릭 이벤트를 중계하는 이벤트
     public event Action<Vector2Int> CellClicked;
 
@@ -107,6 +110,9 @@ public sealed class GridView : MonoBehaviour
         bool interactable)
     {
         CellView cellView = Instantiate(cellPrefab, transform);
+
+        cellView.SetAccessibilityDisplaySettings(
+            GetAccessibilityDisplaySettings());
 
         //셀 좌표에 해당하는 포지션값을 구해옴
         cellView.transform.localPosition = GridToLocalPosition(gridPosition);
@@ -196,6 +202,23 @@ public sealed class GridView : MonoBehaviour
             gridHeight);
 
         cellViews[index].SetPaint(paintState);
+    }
+
+    private AccessibilityDisplaySettings GetAccessibilityDisplaySettings()
+    {
+        if (accessibilityDisplaySettings == null)
+        {
+            throw new InvalidOperationException(
+                "GridView requires an AccessibilityDisplaySettings reference.");
+        }
+
+        if (accessibilityDisplaySettings.ActivePalette == null)
+        {
+            throw new InvalidOperationException(
+                "AccessibilityDisplaySettings requires an active palette.");
+        }
+
+        return accessibilityDisplaySettings;
     }
 
     /// <summary>

@@ -1,39 +1,63 @@
-﻿using System;
+using System;
+using TMPro;
 using UnityEngine;
 using UnityEngine.EventSystems;
 
 /// <summary>
-/// 셀 한칸의 시각적인 표현을 담당하는 클래스, 추후 paintstate에 따라 애니메이션 재생등을 담당
+/// 셀 한 칸의 시각적 표현과 클릭 입력을 담당한다.
 /// </summary>
 public sealed class CellView : MonoBehaviour, IPointerClickHandler
 {
-    //셀의 grid 내에서의 논리 좌표
+    /// <summary>
+    /// 셀이 격자 안에서 차지하는 논리 좌표.
+    /// </summary>
     public Vector2Int GridPosition { get; private set; }
 
-    //추후 물감통을 들고 셀을 클릭할때 호출 될 수 있는 이벤트
+    /// <summary>
+    /// 셀을 클릭했을 때 해당 논리 좌표와 함께 발생한다.
+    /// </summary>
     public event Action<Vector2Int> Clicked;
-    
-    // 셀의 Sprite 색상을 변경할 Renderer, 임시용으로 물감 사용을 처리하기 위해 사용.
+
+    [SerializeField]
+    private TMP_Text symbolText;
+
+    // 셀의 물감 상태를 칠할 스프라이트 렌더러.
     private SpriteRenderer spriteRenderer;
 
     // 정답 패널처럼 셀 클릭을 무시해야 하는 View인지 나타낸다.
     private bool isInteractable = true;
-    
+
+    // 팔레트 또는 심볼 모드가 바뀌어도 동일한 물감 상태를 다시 표시하기 위해 보관한다.
+    private PaintState currentPaintState = PaintState.Empty;
+
+    private AccessibilityDisplaySettings displaySettings;
+    private bool isDisplaySettingsSubscribed;
+
     private void Awake()
     {
-        spriteRenderer =
-            GetComponent<SpriteRenderer>();
+        spriteRenderer = GetComponent<SpriteRenderer>();
         SetPaint(PaintState.Empty);
     }
-    
+
+    private void OnEnable()
+    {
+        SubscribeDisplaySettings();
+        RefreshVisual();
+    }
+
+    private void OnDisable()
+    {
+        UnsubscribeDisplaySettings();
+    }
+
     /// <summary>
-    /// 셀 초기화 함수, 논리좌표를 구하고, 셀 이름을 편집한다
+    /// 셀을 격자 좌표로 초기화하고 GameObject 이름을 지정한다.
     /// </summary>
+    /// <param name="gridPosition">셀의 논리 좌표.</param>
     public void Initialize(Vector2Int gridPosition)
     {
         GridPosition = gridPosition;
-        gameObject.name =
-            $"Cell ({gridPosition.x}, {gridPosition.y})";
+        gameObject.name = $"Cell ({gridPosition.x}, {gridPosition.y})";
     }
 
     /// <summary>
@@ -46,11 +70,10 @@ public sealed class CellView : MonoBehaviour, IPointerClickHandler
     }
 
     /// <summary>
-    /// 마우스 클릭 또는 터치 입력을 받아
-    /// 셀 클릭 이벤트를 발생시킨다.
+    /// 마우스 클릭 또는 터치 입력을 받아 셀 클릭 이벤트를 발생시킨다.
     /// </summary>
-    public void OnPointerClick(
-        PointerEventData eventData)
+    /// <param name="eventData">발생한 포인터 이벤트 데이터.</param>
+    public void OnPointerClick(PointerEventData eventData)
     {
         if (!isInteractable)
         {
@@ -60,32 +83,117 @@ public sealed class CellView : MonoBehaviour, IPointerClickHandler
         Clicked?.Invoke(GridPosition);
     }
 
-    
     /// <summary>
-    /// PaintState에 맞게 셀의 임시 표시 색상을 변경한다.
+    /// 지정한 물감 상태를 셀에 표시한다.
     /// </summary>
+    /// <param name="paintState">셀에 표시할 물감 조합 상태.</param>
     public void SetPaint(PaintState paintState)
     {
-        spriteRenderer.color =
-            GetPaintColor(paintState);
+        currentPaintState = paintState;
+        RefreshVisual();
     }
-    private Color GetPaintColor(
-        PaintState paintState)
+
+    /// <summary>
+    /// 셀이 사용할 접근성 표시 설정을 지정하고 현재 물감 상태를 다시 표시한다.
+    /// </summary>
+    /// <param name="settings">셀 표시에 사용할 접근성 표시 설정.</param>
+    public void SetAccessibilityDisplaySettings(AccessibilityDisplaySettings settings)
+    {
+        if (settings == null)
+        {
+            throw new ArgumentNullException(nameof(settings));
+        }
+
+        if (displaySettings == settings)
+        {
+            RefreshVisual();
+            return;
+        }
+
+        UnsubscribeDisplaySettings();
+        displaySettings = settings;
+        SubscribeDisplaySettings();
+        RefreshVisual();
+    }
+
+    private void RefreshVisual()
+    {
+        if (displaySettings == null || displaySettings.ActivePalette == null)
+        {
+            return;
+        }
+
+        ColorPaletteSO palette = displaySettings.ActivePalette;
+        spriteRenderer.color = palette.GetColor(currentPaintState);
+
+        if (symbolText == null)
+        {
+            return;
+        }
+
+        bool shouldShowSymbol = displaySettings.SymbolsEnabled
+                                && currentPaintState != PaintState.Empty;
+        symbolText.gameObject.SetActive(shouldShowSymbol);
+
+        if (!shouldShowSymbol)
+        {
+            return;
+        }
+
+        symbolText.text = GetSymbol(currentPaintState);
+        symbolText.color = palette.GetSymbolColor(currentPaintState);
+    }
+
+    private void SubscribeDisplaySettings()
+    {
+        if (displaySettings == null || isDisplaySettingsSubscribed)
+        {
+            return;
+        }
+
+        displaySettings.PaletteChanged += HandlePaletteChanged;
+        displaySettings.SymbolsEnabledChanged += HandleSymbolsEnabledChanged;
+        isDisplaySettingsSubscribed = true;
+    }
+
+    private void UnsubscribeDisplaySettings()
+    {
+        if (displaySettings == null || !isDisplaySettingsSubscribed)
+        {
+            return;
+        }
+
+        displaySettings.PaletteChanged -= HandlePaletteChanged;
+        displaySettings.SymbolsEnabledChanged -= HandleSymbolsEnabledChanged;
+        isDisplaySettingsSubscribed = false;
+    }
+
+    private void HandlePaletteChanged(ColorPaletteSO palette)
+    {
+        RefreshVisual();
+    }
+
+    private void HandleSymbolsEnabledChanged(bool enabled)
+    {
+        RefreshVisual();
+    }
+
+    private static string GetSymbol(PaintState paintState)
     {
         return paintState switch
         {
-            PaintState.Empty =>
-                new Color(0.25f, 0.25f, 0.25f),
-
-            PaintState.Red => Color.red,
-            PaintState.Green => Color.green,
-            PaintState.Blue => Color.blue,
-            PaintState.Yellow => Color.yellow,
-            PaintState.Cyan => Color.cyan,
-            PaintState.Magenta => Color.magenta,
-            PaintState.White => Color.white,
-
-            _ => Color.black
+            PaintState.Red => "R",
+            PaintState.Green => "G",
+            PaintState.Blue => "B",
+            PaintState.Yellow => "RG",
+            PaintState.Cyan => "GB",
+            PaintState.Magenta => "RB",
+            PaintState.White => "RGB",
+            PaintState.Empty => string.Empty,
+            _ => throw new ArgumentOutOfRangeException(
+                nameof(paintState),
+                paintState,
+                "Unsupported paint state."),
         };
     }
 }
