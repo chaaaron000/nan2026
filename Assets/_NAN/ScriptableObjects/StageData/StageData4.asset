@@ -14,6 +14,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::StageData
   width: 5
   height: 5
+  title: "\uC774 \uADF8\uB9BC\uB3C4 \uC544\uB2C8\uC57C"
+  description: "\uC9C0\uC6B0\uAE30 \uBB3C\uAC10\uD1B5\uC740 \uC774\uBBF8 \uCE60\uD55C
+    \uBB3C\uAC10\uC744 \uAE68\uB057\uD558\uAC8C \uC9C0\uC6CC\uC694"
   paintBuckets:
   - paintType: 2
     range: 3
