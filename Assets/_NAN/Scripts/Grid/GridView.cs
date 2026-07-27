@@ -176,14 +176,30 @@ public sealed class GridView : MonoBehaviour
     /// </summary>
     private Vector3 GridToLocalPosition(Vector2Int gridPosition)
     {
-        return new Vector3(gridPosition.x * cellSize, gridPosition.y * cellSize, 0f);
+        // GridView의 Transform을 격자 전체의 중심으로 사용한다.
+        // 홀수 크기에서는 중앙 셀이 원점에 오고,
+        // 짝수 크기에서는 중앙 4개 셀의 중심이 원점에 오도록 반 칸을 허용한다.
+        float centerX = (gridWidth - 1) * 0.5f;
+        float centerY = (gridHeight - 1) * 0.5f;
+
+        return new Vector3(
+            (gridPosition.x - centerX) * cellSize,
+            (gridPosition.y - centerY) * cellSize,
+            0f);
     }
 
     private Vector3 WallToLocalPosition(Vector2Int wallPosition)
     {
         // 벽 좌표는 셀 좌표의 2배 단위이므로 0.5를 곱해
         // 두 셀 중심 사이의 실제 로컬 위치로 되돌린다.
-        return new Vector3(wallPosition.x * 0.5f * cellSize, wallPosition.y * 0.5f * cellSize, 0f);
+        // 셀과 같은 중심 보정값을 적용해야 벽도 패널의 중앙 기준으로 정렬된다.
+        float centerX = (gridWidth - 1) * 0.5f;
+        float centerY = (gridHeight - 1) * 0.5f;
+
+        return new Vector3(
+            (wallPosition.x * 0.5f - centerX) * cellSize,
+            (wallPosition.y * 0.5f - centerY) * cellSize,
+            0f);
     }
 
     /// <summary>

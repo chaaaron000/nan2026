@@ -16,6 +16,13 @@ public sealed class StageData : ScriptableObject
     [SerializeField]
     private int height = 5;
 
+    // 스테이지 선택 창과 인게임 상단에 표시할 제목과 설명
+    [SerializeField]
+    private string title = string.Empty;
+
+    [SerializeField, TextArea(1, 3)]
+    private string description = string.Empty;
+
     //스테이지에 들어가는 물감통
     [SerializeField]
     private List<PaintBucket> paintBuckets = new();
@@ -45,6 +52,16 @@ public sealed class StageData : ScriptableObject
     /// 스테이지 격자의 세로 셀 수를 반환한다.
     /// </summary>
     public int Height => height;
+
+    /// <summary>
+    /// 스테이지 선택 창과 인게임에 표시할 제목을 반환한다.
+    /// </summary>
+    public string Title => title;
+
+    /// <summary>
+    /// 스테이지의 특징이나 새로 배울 규칙을 설명하는 문구를 반환한다.
+    /// </summary>
+    public string Description => description;
 
     /// <summary>
     /// 스테이지에서 사용할 물감통 목록을 반환한다.

@@ -663,7 +663,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: baf01c64388c105418328fb634144c34, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::GridTestController
-  stageData: {fileID: 11400000, guid: 8f051711e1973fa47877498cd3fea3cb, type: 2}
+  stageData: {fileID: 11400000, guid: 313be942d202417468f5ba534abe9725, type: 2}
   gridView: {fileID: 1052171771}
   answerGridView: {fileID: 1702057106}
   bucketController: {fileID: 727864141}
@@ -1735,7 +1735,7 @@ Transform:
   m_GameObject: {fileID: 1052171770}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 2.7, y: -0.85, z: 0}
+  m_LocalPosition: {x: 4.7, y: 1.15, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -2751,7 +2751,7 @@ Transform:
   m_GameObject: {fileID: 1702057105}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -6.25, y: -1.56, z: 0}
+  m_LocalPosition: {x: -4.25, y: 0.44, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []

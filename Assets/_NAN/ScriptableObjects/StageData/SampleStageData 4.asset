@@ -10,7 +10,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 29dabe2eb0434ea48f568b2380dfe44f, type: 3}
-  m_Name: SampleStageData
+  m_Name: SampleStageData 4
   m_EditorClassIdentifier: Assembly-CSharp::StageData
   width: 5
   height: 5
@@ -22,24 +22,8 @@ MonoBehaviour:
   - paintType: 1
     range: 3
   - paintType: 3
-    range: 3
-  wallPositions:
-  - {x: 2, y: 1}
-  - {x: 1, y: 2}
-  - {x: 7, y: 2}
-  - {x: 6, y: 1}
-  - {x: 3, y: 8}
-  - {x: 5, y: 8}
-  - {x: 2, y: 7}
-  - {x: 0, y: 5}
-  - {x: 1, y: 6}
-  - {x: 0, y: 3}
-  - {x: 3, y: 0}
-  - {x: 5, y: 0}
-  - {x: 6, y: 7}
-  - {x: 7, y: 6}
-  - {x: 8, y: 5}
-  - {x: 8, y: 3}
-  answerPaintStates: 00000000000000000000000000000000000000000000000004000000000000000200000000000000050000000500000006000000030000000300000000000000050000000100000003000000000000000000000000000000010000000000000000000000
+    range: 2
+  wallPositions: []
+  answerPaintStates: 00000000000000000000000000000000010000000000000000000000000000000100000001000000000000000000000000000000000000000100000002000000030000000000000005000000050000000200000002000000030000000700000001000000
   answerWidth: 5
   answerHeight: 5
