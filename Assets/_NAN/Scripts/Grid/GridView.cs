@@ -12,6 +12,10 @@ public sealed class GridView : MonoBehaviour
     private CellView cellPrefab;
 
     [SerializeField]
+    [Tooltip("생성된 격자의 중심으로 사용할 UI 패널")]
+    private RectTransform placementPanel;
+
+    [SerializeField]
     private float cellSize = 1f;
 
     [SerializeField]
@@ -45,6 +49,8 @@ public sealed class GridView : MonoBehaviour
         bool interactable = true)
     {
         ClearGrid();
+
+        SyncPositionToPlacementPanel();
 
         gridWidth = gridState.Width;
         gridHeight = gridState.Height;
@@ -129,6 +135,67 @@ public sealed class GridView : MonoBehaviour
 
         //cellViews 배열에 만들어진 셀을 저장
         cellViews[index] = cellView;
+    }
+
+    /// <summary>
+    /// UI 패널의 중심을 격자 오브젝트의 월드 위치로 변환한다.
+    /// </summary>
+    private void SyncPositionToPlacementPanel()
+    {
+        if (placementPanel == null)
+        {
+            return;
+        }
+
+        Canvas canvas = placementPanel.GetComponentInParent<Canvas>();
+        if (canvas == null)
+        {
+            throw new InvalidOperationException(
+                "GridView placement panel must be under a Canvas.");
+        }
+
+        if (canvas.renderMode == RenderMode.WorldSpace)
+        {
+            transform.position = new Vector3(
+                placementPanel.position.x,
+                placementPanel.position.y,
+                transform.position.z);
+            return;
+        }
+
+        Camera eventCamera = canvas.renderMode == RenderMode.ScreenSpaceOverlay
+            ? null
+            : canvas.worldCamera != null
+                ? canvas.worldCamera
+                : Camera.main;
+        Camera worldCamera = canvas.worldCamera != null
+            ? canvas.worldCamera
+            : Camera.main;
+
+        if (worldCamera == null)
+        {
+            throw new InvalidOperationException(
+                "GridView placement panel requires a world camera.");
+        }
+
+        Vector2 screenPoint = RectTransformUtility.WorldToScreenPoint(
+            eventCamera,
+            placementPanel.position);
+
+        float worldDepth = Vector3.Dot(
+            transform.position - worldCamera.transform.position,
+            worldCamera.transform.forward);
+
+        Vector3 panelWorldPosition = worldCamera.ScreenToWorldPoint(
+            new Vector3(
+                screenPoint.x,
+                screenPoint.y,
+                worldDepth));
+
+        transform.position = new Vector3(
+            panelWorldPosition.x,
+            panelWorldPosition.y,
+            transform.position.z);
     }
 
     /// <summary>
