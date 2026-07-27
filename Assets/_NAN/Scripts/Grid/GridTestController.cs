@@ -1,4 +1,5 @@
 using UnityEngine;
+using TMPro;
 
 /// <summary>
 /// 테스트용 격자와 물감통을 초기화하고
@@ -26,6 +27,10 @@ public sealed class GridTestController : MonoBehaviour
     // 커맨드 Controller
     [SerializeField]
     private CommandController commandController;
+
+    [SerializeField] private TextMeshProUGUI titleText;
+    [SerializeField] private TextMeshProUGUI descriptionText;
+    
 
     // 현재 테스트 격자의 실제 논리 상태
     private GridState gridState;
@@ -59,6 +64,9 @@ public sealed class GridTestController : MonoBehaviour
             SoundKeys.StageBgm);
 
         commandController.ClearHistory();
+        
+        titleText.text = stageData.Title;
+        descriptionText.text = stageData.Description;
         
         gridState =
             new GridState(

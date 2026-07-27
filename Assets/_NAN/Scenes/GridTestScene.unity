@@ -554,17 +554,17 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: TITLe
+  m_text: "RGB\uAC00 \uBAA8\uC774\uBA74"
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
-  m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
+  m_fontAsset: {fileID: 11400000, guid: 9212140ef03aee846972003a4cb6da8c, type: 2}
+  m_sharedMaterial: {fileID: -1594048484222829285, guid: 9212140ef03aee846972003a4cb6da8c, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 4294967295
-  m_fontColor: {r: 1, g: 1, b: 1, a: 1}
+    rgba: 4294243583
+  m_fontColor: {r: 1, g: 0.9575472, b: 0.9575472, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
   m_fontColorGradient:
@@ -581,13 +581,13 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 44
-  m_fontSizeBase: 44
+  m_fontSize: 46
+  m_fontSizeBase: 46
   m_fontWeight: 400
   m_enableAutoSizing: 0
   m_fontSizeMin: 18
   m_fontSizeMax: 72
-  m_fontStyle: 1
+  m_fontStyle: 0
   m_HorizontalAlignment: 2
   m_VerticalAlignment: 256
   m_textAlignment: 65535
@@ -646,7 +646,7 @@ GameObject:
   - component: {fileID: 79163584}
   - component: {fileID: 79163583}
   m_Layer: 5
-  m_Name: TitleText (1)
+  m_Name: DescriptionText
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -691,17 +691,18 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: TITLe
+  m_text: "\uC9C0\uC6B0\uAE30 \uBB3C\uAC10\uD1B5\uC740 \uC774\uBBF8 \uCE60\uD55C
+    \uBB3C\uAC10\uC744 \uAE68\uB057\uD558\uAC8C \uC9C0\uC6CC\uC694"
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
-  m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
+  m_fontAsset: {fileID: 11400000, guid: 9212140ef03aee846972003a4cb6da8c, type: 2}
+  m_sharedMaterial: {fileID: -1594048484222829285, guid: 9212140ef03aee846972003a4cb6da8c, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 4294967295
-  m_fontColor: {r: 1, g: 1, b: 1, a: 1}
+    rgba: 4292138215
+  m_fontColor: {r: 0.9056604, g: 0.83303666, b: 0.83303666, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
   m_fontColorGradient:
@@ -942,6 +943,8 @@ MonoBehaviour:
   answerGridView: {fileID: 1702057106}
   bucketController: {fileID: 727864141}
   commandController: {fileID: 613329201}
+  titleText: {fileID: 52109522}
+  descriptionText: {fileID: 79163583}
 --- !u!4 &230329653
 Transform:
   m_ObjectHideFlags: 0
