@@ -131,8 +131,7 @@ public sealed class CellView : MonoBehaviour, IPointerClickHandler
             return;
         }
 
-        bool shouldShowSymbol = displaySettings.SymbolsEnabled
-                                && currentPaintState != PaintState.Empty;
+        bool shouldShowSymbol = displaySettings.SymbolsEnabled && currentPaintState != PaintState.Empty;
         symbolText.gameObject.SetActive(shouldShowSymbol);
 
         if (!shouldShowSymbol)
@@ -140,7 +139,7 @@ public sealed class CellView : MonoBehaviour, IPointerClickHandler
             return;
         }
 
-        symbolText.text = GetSymbol(currentPaintState);
+        symbolText.text = PaintStateVisualUtility.GetSymbol(currentPaintState);
         symbolText.color = palette.GetSymbolColor(currentPaintState);
     }
 
@@ -176,24 +175,5 @@ public sealed class CellView : MonoBehaviour, IPointerClickHandler
     private void HandleSymbolsEnabledChanged(bool enabled)
     {
         RefreshVisual();
-    }
-
-    private static string GetSymbol(PaintState paintState)
-    {
-        return paintState switch
-        {
-            PaintState.Red => "R",
-            PaintState.Green => "G",
-            PaintState.Blue => "B",
-            PaintState.Yellow => "RG",
-            PaintState.Cyan => "GB",
-            PaintState.Magenta => "RB",
-            PaintState.White => "RGB",
-            PaintState.Empty => string.Empty,
-            _ => throw new ArgumentOutOfRangeException(
-                nameof(paintState),
-                paintState,
-                "Unsupported paint state."),
-        };
     }
 }

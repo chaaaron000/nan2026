@@ -10,12 +10,6 @@ namespace Nan.UI
     public sealed class UIStageSelectPanel : MonoBehaviour
     {
         [SerializeField]
-        private TMP_Text stageNameLabel;
-
-        [SerializeField]
-        private Transform stageContainer;
-
-        [SerializeField]
         private Button backToTitleButton;
 
         private TitleUIController titleUIController;

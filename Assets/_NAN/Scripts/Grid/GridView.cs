@@ -1,6 +1,5 @@
 ﻿using System;
 using UnityEngine;
-
 using System.Collections.Generic;
 
 /// <summary>
@@ -44,9 +43,7 @@ public sealed class GridView : MonoBehaviour
     /// </summary>
     /// <param name="gridState">생성할 격자의 크기와 벽 상태.</param>
     /// <param name="interactable">true면 생성된 셀이 클릭 이벤트를 전달한다.</param>
-    public void CreateGrid(
-        GridState gridState,
-        bool interactable = true)
+    public void CreateGrid(GridState gridState, bool interactable = true)
     {
         ClearGrid();
 
@@ -63,10 +60,7 @@ public sealed class GridView : MonoBehaviour
             {
                 Vector2Int gridPosition = new Vector2Int(x, y);
 
-                CreateCell(
-                    gridState,
-                    gridPosition,
-                    interactable);
+                CreateCell(gridState, gridPosition, interactable);
             }
         }
 
@@ -110,15 +104,11 @@ public sealed class GridView : MonoBehaviour
     /// <summary>
     /// 셀 하나를 생성하는 함수
     /// </summary>
-    private void CreateCell(
-        GridState gridState,
-        Vector2Int gridPosition,
-        bool interactable)
+    private void CreateCell(GridState gridState, Vector2Int gridPosition, bool interactable)
     {
         CellView cellView = Instantiate(cellPrefab, transform);
 
-        cellView.SetAccessibilityDisplaySettings(
-            GetAccessibilityDisplaySettings());
+        cellView.SetAccessibilityDisplaySettings(GetAccessibilityDisplaySettings());
 
         //셀 좌표에 해당하는 포지션값을 구해옴
         cellView.transform.localPosition = GridToLocalPosition(gridPosition);
@@ -150,8 +140,7 @@ public sealed class GridView : MonoBehaviour
         Canvas canvas = placementPanel.GetComponentInParent<Canvas>();
         if (canvas == null)
         {
-            throw new InvalidOperationException(
-                "GridView placement panel must be under a Canvas.");
+            throw new InvalidOperationException("GridView placement panel must be under a Canvas.");
         }
 
         if (canvas.renderMode == RenderMode.WorldSpace)
@@ -159,43 +148,32 @@ public sealed class GridView : MonoBehaviour
             transform.position = new Vector3(
                 placementPanel.position.x,
                 placementPanel.position.y,
-                transform.position.z);
+                transform.position.z
+            );
             return;
         }
 
-        Camera eventCamera = canvas.renderMode == RenderMode.ScreenSpaceOverlay
-            ? null
-            : canvas.worldCamera != null
-                ? canvas.worldCamera
-                : Camera.main;
-        Camera worldCamera = canvas.worldCamera != null
-            ? canvas.worldCamera
-            : Camera.main;
+        Camera eventCamera = canvas.renderMode == RenderMode.ScreenSpaceOverlay ? null :
+            canvas.worldCamera != null ? canvas.worldCamera : Camera.main;
+        Camera worldCamera = canvas.worldCamera != null ? canvas.worldCamera : Camera.main;
 
         if (worldCamera == null)
         {
-            throw new InvalidOperationException(
-                "GridView placement panel requires a world camera.");
+            throw new InvalidOperationException("GridView placement panel requires a world camera.");
         }
 
-        Vector2 screenPoint = RectTransformUtility.WorldToScreenPoint(
-            eventCamera,
-            placementPanel.position);
+        Vector2 screenPoint = RectTransformUtility.WorldToScreenPoint(eventCamera, placementPanel.position);
 
         float worldDepth = Vector3.Dot(
             transform.position - worldCamera.transform.position,
-            worldCamera.transform.forward);
+            worldCamera.transform.forward
+        );
 
         Vector3 panelWorldPosition = worldCamera.ScreenToWorldPoint(
-            new Vector3(
-                screenPoint.x,
-                screenPoint.y,
-                worldDepth));
+            new Vector3(screenPoint.x, screenPoint.y, worldDepth)
+        );
 
-        transform.position = new Vector3(
-            panelWorldPosition.x,
-            panelWorldPosition.y,
-            transform.position.z);
+        transform.position = new Vector3(panelWorldPosition.x, panelWorldPosition.y, transform.position.z);
     }
 
     /// <summary>
@@ -218,7 +196,7 @@ public sealed class GridView : MonoBehaviour
 
             // 2배 좌표계에서 x가 홀수면 좌우 셀 사이의 세로 벽,
             // y가 홀수면 상하 셀 사이의 가로 벽이다.
-            bool isVertical = wallPosition.x % 2 != 0;
+            bool isVertical = GridLayoutUtility.IsVerticalWall(wallPosition);
 
             wallObject.transform.localScale = isVertical
                 ? new Vector3(wallThickness, cellSize, 1f)
@@ -243,30 +221,16 @@ public sealed class GridView : MonoBehaviour
     /// </summary>
     private Vector3 GridToLocalPosition(Vector2Int gridPosition)
     {
-        // GridView의 Transform을 격자 전체의 중심으로 사용한다.
-        // 홀수 크기에서는 중앙 셀이 원점에 오고,
-        // 짝수 크기에서는 중앙 4개 셀의 중심이 원점에 오도록 반 칸을 허용한다.
-        float centerX = (gridWidth - 1) * 0.5f;
-        float centerY = (gridHeight - 1) * 0.5f;
+        Vector2 localPosition = GridLayoutUtility.GetCellLocalPosition(gridPosition, gridWidth, gridHeight, cellSize);
 
-        return new Vector3(
-            (gridPosition.x - centerX) * cellSize,
-            (gridPosition.y - centerY) * cellSize,
-            0f);
+        return new Vector3(localPosition.x, localPosition.y, 0f);
     }
 
     private Vector3 WallToLocalPosition(Vector2Int wallPosition)
     {
-        // 벽 좌표는 셀 좌표의 2배 단위이므로 0.5를 곱해
-        // 두 셀 중심 사이의 실제 로컬 위치로 되돌린다.
-        // 셀과 같은 중심 보정값을 적용해야 벽도 패널의 중앙 기준으로 정렬된다.
-        float centerX = (gridWidth - 1) * 0.5f;
-        float centerY = (gridHeight - 1) * 0.5f;
+        Vector2 localPosition = GridLayoutUtility.GetWallLocalPosition(wallPosition, gridWidth, gridHeight, cellSize);
 
-        return new Vector3(
-            (wallPosition.x * 0.5f - centerX) * cellSize,
-            (wallPosition.y * 0.5f - centerY) * cellSize,
-            0f);
+        return new Vector3(localPosition.x, localPosition.y, 0f);
     }
 
     /// <summary>
@@ -279,10 +243,7 @@ public sealed class GridView : MonoBehaviour
             throw new InvalidOperationException("Grid has not been created.");
         }
 
-        int index = GridIndexUtility.ToIndex(
-            position,
-            gridWidth,
-            gridHeight);
+        int index = GridIndexUtility.ToIndex(position, gridWidth, gridHeight);
 
         cellViews[index].SetPaint(paintState);
     }
@@ -291,14 +252,12 @@ public sealed class GridView : MonoBehaviour
     {
         if (accessibilityDisplaySettings == null)
         {
-            throw new InvalidOperationException(
-                "GridView requires an AccessibilityDisplaySettings reference.");
+            throw new InvalidOperationException("GridView requires an AccessibilityDisplaySettings reference.");
         }
 
         if (accessibilityDisplaySettings.ActivePalette == null)
         {
-            throw new InvalidOperationException(
-                "AccessibilityDisplaySettings requires an active palette.");
+            throw new InvalidOperationException("AccessibilityDisplaySettings requires an active palette.");
         }
 
         return accessibilityDisplaySettings;
@@ -324,7 +283,8 @@ public sealed class GridView : MonoBehaviour
         {
             throw new ArgumentException(
                 $"Paint state count must be {cellViews.Length}, but was {paintStates.Count}.",
-                nameof(paintStates));
+                nameof(paintStates)
+            );
         }
 
         for (int index = 0; index < cellViews.Length; index++)
