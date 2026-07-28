@@ -9,16 +9,32 @@ namespace Nan.UI
     /// </summary>
     public sealed class UIStageSelectPanel : MonoBehaviour
     {
+        private const string StageSceneName = "GridTestScene";
+
+        [SerializeField]
+        private Button stageStartButton;
+
         [SerializeField]
         private Button backToTitleButton;
 
         private TitleUIController titleUIController;
+        private StagePreviewSystem stagePreviewSystem;
 
         private void Awake()
         {
-            if (backToTitleButton == null)
+            if (stageStartButton == null || backToTitleButton == null)
             {
-                DebugConsole.LogError("[UIStageSelectPanel] Back button is null", this);
+                DebugConsole.LogError("[UIStageSelectPanel] Required button is null", this);
+                enabled = false;
+                return;
+            }
+
+            stagePreviewSystem = GetComponent<StagePreviewSystem>();
+            if (stagePreviewSystem == null)
+            {
+                DebugConsole.LogError(
+                    "[UIStageSelectPanel] StagePreviewSystem was not found",
+                    this);
                 enabled = false;
                 return;
             }
@@ -34,7 +50,19 @@ namespace Nan.UI
                 return;
             }
 
+            stageStartButton.onClick.AddListener(HandleStageStartButtonClicked);
             backToTitleButton.onClick.AddListener(HandleBackToTitleButtonClicked);
+        }
+
+        private void HandleStageStartButtonClicked()
+        {
+            if (!stagePreviewSystem.TryGetCurrentStage(out StageData selectedStage))
+            {
+                return;
+            }
+
+            StageRunContext.Instance.SelectStage(selectedStage);
+            SceneTransitionManager.Instance.LoadSceneAndWaitForReady(StageSceneName);
         }
 
         private void HandleBackToTitleButtonClicked()
@@ -44,6 +72,11 @@ namespace Nan.UI
 
         private void OnDestroy()
         {
+            if (stageStartButton != null)
+            {
+                stageStartButton.onClick.RemoveListener(HandleStageStartButtonClicked);
+            }
+
             if (backToTitleButton != null)
             {
                 backToTitleButton.onClick.RemoveListener(HandleBackToTitleButtonClicked);

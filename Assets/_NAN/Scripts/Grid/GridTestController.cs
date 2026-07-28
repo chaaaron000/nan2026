@@ -42,6 +42,27 @@ public sealed class GridTestController : MonoBehaviour
     private readonly PaintSpreadCalculator
         spreadCalculator = new();
 
+    private void Start()
+    {
+        StageData selectedStage = StageRunContext.Instance.SelectedStage;
+        if (selectedStage != null)
+        {
+            stageData = selectedStage;
+        }
+
+        if (stageData == null)
+        {
+            DebugConsole.LogError(
+                "[GridTestController] StageData is missing.",
+                this);
+            SceneTransitionManager.Instance.NotifySceneReady();
+            enabled = false;
+            return;
+        }
+
+        CreateTestGrid();
+    }
+
     private void OnEnable()
     {
         bucketController.BucketUseRequested +=
@@ -101,6 +122,10 @@ public sealed class GridTestController : MonoBehaviour
 
         bucketController.Initialize(
             stageData.PaintBuckets);
+
+        // 씬 활성화만으로는 퍼즐 View 생성 완료를 보장할 수 없으므로,
+        // 모든 초기화가 끝난 뒤 전환 화면을 열 수 있도록 명시적으로 알린다.
+        SceneTransitionManager.Instance.NotifySceneReady();
     }
 
     private void HandleBucketUseRequested(

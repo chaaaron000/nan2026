@@ -51,6 +51,23 @@ namespace Nan.UI
         private bool isSliding;
         private Sequence activeSlideTween;
 
+        /// <summary>
+        /// 현재 화면 중앙에 선택된 스테이지 데이터를 가져옵니다.
+        /// </summary>
+        /// <param name="stageData">현재 선택된 스테이지 데이터입니다.</param>
+        /// <returns>초기화가 끝났고 슬라이드 중이 아니면 true를 반환합니다.</returns>
+        public bool TryGetCurrentStage(out StageData stageData)
+        {
+            if (!isInitialized || isSliding)
+            {
+                stageData = null;
+                return false;
+            }
+
+            stageData = stageCatalog.GetStage(currentStageIndex);
+            return true;
+        }
+
         private void Awake()
         {
             if (!ValidateConfiguration())
