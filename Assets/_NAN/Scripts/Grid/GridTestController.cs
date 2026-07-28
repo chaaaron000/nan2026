@@ -1,4 +1,5 @@
 using UnityEngine;
+using TMPro;
 
 /// <summary>
 /// 테스트용 격자와 물감통을 초기화하고
@@ -26,6 +27,10 @@ public sealed class GridTestController : MonoBehaviour
     // 커맨드 Controller
     [SerializeField]
     private CommandController commandController;
+
+    [SerializeField] private TextMeshProUGUI titleText;
+    [SerializeField] private TextMeshProUGUI descriptionText;
+    
 
     // 현재 테스트 격자의 실제 논리 상태
     private GridState gridState;
@@ -55,7 +60,13 @@ public sealed class GridTestController : MonoBehaviour
     /// </summary>
     public void CreateTestGrid()
     {
+        SoundManager.Instance?.PlayBgm(
+            SoundKeys.StageBgm);
+
         commandController.ClearHistory();
+        
+        titleText.text = stageData.Title;
+        descriptionText.text = stageData.Description;
         
         gridState =
             new GridState(
@@ -111,6 +122,11 @@ public sealed class GridTestController : MonoBehaviour
                 gridView,
                 bucketController,
                 spreadCalculator);
+
+        // 선택된 물감통과 셀 입력이 이미 검증된 이벤트이므로,
+        // 범위 계산과 화면 갱신보다 먼저 입력 피드백을 재생한다.
+        SoundManager.Instance?.PlaySfx(
+            SoundKeys.PaintBucketUse);
 
         if (commandController.Execute(command))
         {

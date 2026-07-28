@@ -1,0 +1,53 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 29dabe2eb0434ea48f568b2380dfe44f, type: 3}
+  m_Name: StageData8
+  m_EditorClassIdentifier: Assembly-CSharp::StageData
+  width: 5
+  height: 5
+  title: "\uB370\uCE7C\uCF54\uB9C8\uB2C8"
+  description: "\uC2EC\uB9AC \uAC80\uC0AC\uC9C0\uC5D0 \uC788\uC744 \uBC95\uD55C \uADF8\uB9BC"
+  paintBuckets:
+  - paintType: 2
+    range: 3
+  - paintType: 1
+    range: 3
+  - paintType: 0
+    range: 3
+  - paintType: 3
+    range: 2
+  - paintType: 2
+    range: 2
+  - paintType: 1
+    range: 2
+  wallPositions:
+  - {x: 5, y: 2}
+  - {x: 5, y: 0}
+  - {x: 7, y: 2}
+  - {x: 1, y: 6}
+  - {x: 0, y: 7}
+  - {x: 4, y: 7}
+  - {x: 3, y: 6}
+  - {x: 3, y: 8}
+  - {x: 5, y: 8}
+  - {x: 8, y: 7}
+  - {x: 7, y: 6}
+  - {x: 1, y: 2}
+  - {x: 0, y: 1}
+  - {x: 3, y: 2}
+  - {x: 3, y: 0}
+  - {x: 4, y: 1}
+  - {x: 5, y: 6}
+  - {x: 8, y: 1}
+  answerPaintStates: 01000000010000000000000002000000020000000000000005000000000000000600000000000000040000000000000000000000000000000400000000000000050000000000000006000000000000000100000001000000000000000200000002000000
+  answerWidth: 5
+  answerHeight: 5

@@ -40,6 +40,15 @@ public sealed class CommandController : MonoBehaviour
     /// </summary>
     public void HandleUndoButtonClicked()
     {
+        if (!CanUndo)
+        {
+            return;
+        }
+
+        // 복원 대상이 있다는 것이 확인되었으므로
+        // 대량의 화면 복원 작업보다 먼저 즉시 피드백을 제공한다.
+        SoundManager.Instance?.PlaySfx(
+            SoundKeys.Undo);
         UndoLast();
     }
 
@@ -64,6 +73,15 @@ public sealed class CommandController : MonoBehaviour
     /// </summary>
     public void HandleClearButtonClicked()
     {
+        if (undoStack.Count == 0)
+        {
+            return;
+        }
+
+        // 전체 되돌리기 대상이 있다는 것이 확인되었으므로
+        // 반복되는 Undo 처리보다 먼저 버튼 피드백을 재생한다.
+        SoundManager.Instance?.PlaySfx(
+            SoundKeys.Erase);
         UndoAll();
     }
 

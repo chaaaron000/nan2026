@@ -12,6 +12,10 @@ public sealed class GridView : MonoBehaviour
     private CellView cellPrefab;
 
     [SerializeField]
+    [Tooltip("생성된 격자의 중심으로 사용할 UI 패널")]
+    private RectTransform placementPanel;
+
+    [SerializeField]
     private float cellSize = 1f;
 
     [SerializeField]
@@ -20,6 +24,9 @@ public sealed class GridView : MonoBehaviour
     [SerializeField]
     [Min(0f)]
     private float wallThickness = 0.1f;
+
+    [SerializeField]
+    private AccessibilityDisplaySettings accessibilityDisplaySettings;
 
     //각 셀 클릭 이벤트를 중계하는 이벤트
     public event Action<Vector2Int> CellClicked;
@@ -42,6 +49,8 @@ public sealed class GridView : MonoBehaviour
         bool interactable = true)
     {
         ClearGrid();
+
+        SyncPositionToPlacementPanel();
 
         gridWidth = gridState.Width;
         gridHeight = gridState.Height;
@@ -108,6 +117,9 @@ public sealed class GridView : MonoBehaviour
     {
         CellView cellView = Instantiate(cellPrefab, transform);
 
+        cellView.SetAccessibilityDisplaySettings(
+            GetAccessibilityDisplaySettings());
+
         //셀 좌표에 해당하는 포지션값을 구해옴
         cellView.transform.localPosition = GridToLocalPosition(gridPosition);
 
@@ -123,6 +135,67 @@ public sealed class GridView : MonoBehaviour
 
         //cellViews 배열에 만들어진 셀을 저장
         cellViews[index] = cellView;
+    }
+
+    /// <summary>
+    /// UI 패널의 중심을 격자 오브젝트의 월드 위치로 변환한다.
+    /// </summary>
+    private void SyncPositionToPlacementPanel()
+    {
+        if (placementPanel == null)
+        {
+            return;
+        }
+
+        Canvas canvas = placementPanel.GetComponentInParent<Canvas>();
+        if (canvas == null)
+        {
+            throw new InvalidOperationException(
+                "GridView placement panel must be under a Canvas.");
+        }
+
+        if (canvas.renderMode == RenderMode.WorldSpace)
+        {
+            transform.position = new Vector3(
+                placementPanel.position.x,
+                placementPanel.position.y,
+                transform.position.z);
+            return;
+        }
+
+        Camera eventCamera = canvas.renderMode == RenderMode.ScreenSpaceOverlay
+            ? null
+            : canvas.worldCamera != null
+                ? canvas.worldCamera
+                : Camera.main;
+        Camera worldCamera = canvas.worldCamera != null
+            ? canvas.worldCamera
+            : Camera.main;
+
+        if (worldCamera == null)
+        {
+            throw new InvalidOperationException(
+                "GridView placement panel requires a world camera.");
+        }
+
+        Vector2 screenPoint = RectTransformUtility.WorldToScreenPoint(
+            eventCamera,
+            placementPanel.position);
+
+        float worldDepth = Vector3.Dot(
+            transform.position - worldCamera.transform.position,
+            worldCamera.transform.forward);
+
+        Vector3 panelWorldPosition = worldCamera.ScreenToWorldPoint(
+            new Vector3(
+                screenPoint.x,
+                screenPoint.y,
+                worldDepth));
+
+        transform.position = new Vector3(
+            panelWorldPosition.x,
+            panelWorldPosition.y,
+            transform.position.z);
     }
 
     /// <summary>
@@ -170,14 +243,30 @@ public sealed class GridView : MonoBehaviour
     /// </summary>
     private Vector3 GridToLocalPosition(Vector2Int gridPosition)
     {
-        return new Vector3(gridPosition.x * cellSize, gridPosition.y * cellSize, 0f);
+        // GridView의 Transform을 격자 전체의 중심으로 사용한다.
+        // 홀수 크기에서는 중앙 셀이 원점에 오고,
+        // 짝수 크기에서는 중앙 4개 셀의 중심이 원점에 오도록 반 칸을 허용한다.
+        float centerX = (gridWidth - 1) * 0.5f;
+        float centerY = (gridHeight - 1) * 0.5f;
+
+        return new Vector3(
+            (gridPosition.x - centerX) * cellSize,
+            (gridPosition.y - centerY) * cellSize,
+            0f);
     }
 
     private Vector3 WallToLocalPosition(Vector2Int wallPosition)
     {
         // 벽 좌표는 셀 좌표의 2배 단위이므로 0.5를 곱해
         // 두 셀 중심 사이의 실제 로컬 위치로 되돌린다.
-        return new Vector3(wallPosition.x * 0.5f * cellSize, wallPosition.y * 0.5f * cellSize, 0f);
+        // 셀과 같은 중심 보정값을 적용해야 벽도 패널의 중앙 기준으로 정렬된다.
+        float centerX = (gridWidth - 1) * 0.5f;
+        float centerY = (gridHeight - 1) * 0.5f;
+
+        return new Vector3(
+            (wallPosition.x * 0.5f - centerX) * cellSize,
+            (wallPosition.y * 0.5f - centerY) * cellSize,
+            0f);
     }
 
     /// <summary>
@@ -196,6 +285,23 @@ public sealed class GridView : MonoBehaviour
             gridHeight);
 
         cellViews[index].SetPaint(paintState);
+    }
+
+    private AccessibilityDisplaySettings GetAccessibilityDisplaySettings()
+    {
+        if (accessibilityDisplaySettings == null)
+        {
+            throw new InvalidOperationException(
+                "GridView requires an AccessibilityDisplaySettings reference.");
+        }
+
+        if (accessibilityDisplaySettings.ActivePalette == null)
+        {
+            throw new InvalidOperationException(
+                "AccessibilityDisplaySettings requires an active palette.");
+        }
+
+        return accessibilityDisplaySettings;
     }
 
     /// <summary>

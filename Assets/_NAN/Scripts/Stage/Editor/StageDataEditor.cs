@@ -15,6 +15,8 @@ public sealed class StageDataEditor : Editor
 
     private SerializedProperty widthProperty;
     private SerializedProperty heightProperty;
+    private SerializedProperty titleProperty;
+    private SerializedProperty descriptionProperty;
     private SerializedProperty paintBucketsProperty;
     private SerializedProperty wallPositionsProperty;
     private SerializedProperty answerPaintStatesProperty;
@@ -25,6 +27,8 @@ public sealed class StageDataEditor : Editor
     {
         widthProperty = serializedObject.FindProperty("width");
         heightProperty = serializedObject.FindProperty("height");
+        titleProperty = serializedObject.FindProperty("title");
+        descriptionProperty = serializedObject.FindProperty("description");
         paintBucketsProperty = serializedObject.FindProperty("paintBuckets");
         wallPositionsProperty = serializedObject.FindProperty("wallPositions");
         answerPaintStatesProperty = serializedObject.FindProperty("answerPaintStates");
@@ -39,6 +43,8 @@ public sealed class StageDataEditor : Editor
 
         EditorGUILayout.PropertyField(widthProperty);
         EditorGUILayout.PropertyField(heightProperty);
+        EditorGUILayout.PropertyField(titleProperty);
+        EditorGUILayout.PropertyField(descriptionProperty);
         EditorGUILayout.PropertyField(paintBucketsProperty, true);
 
         serializedObject.ApplyModifiedProperties();
