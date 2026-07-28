@@ -22,7 +22,7 @@ namespace Nan.UI
 
         private void Awake()
         {
-            if (startButton == null || quitButton == null)
+            if (startButton == null || settingsButton == null || quitButton == null)
             {
                 DebugConsole.LogError("[UITitleMainPanel] Required button is null", this);
                 enabled = false;
@@ -41,6 +41,7 @@ namespace Nan.UI
             }
 
             startButton.onClick.AddListener(HandleStartButtonClicked);
+            settingsButton.onClick.AddListener(HandleSettingsButtonClicked);
             quitButton.onClick.AddListener(HandleQuitButtonClicked);
         }
 
@@ -54,6 +55,11 @@ namespace Nan.UI
             Application.Quit();
         }
 
+        private void HandleSettingsButtonClicked()
+        {
+            GameSettingsService.Instance.ShowSettings();
+        }
+
         private void OnDestroy()
         {
             if (startButton != null)
@@ -64,6 +70,11 @@ namespace Nan.UI
             if (quitButton != null)
             {
                 quitButton.onClick.RemoveListener(HandleQuitButtonClicked);
+            }
+
+            if (settingsButton != null)
+            {
+                settingsButton.onClick.RemoveListener(HandleSettingsButtonClicked);
             }
         }
     }
