@@ -19,6 +19,9 @@ public sealed class PaintBucketGenerator : MonoBehaviour
     // 색깔 별 물감통 Sprite를 제공하는 시각 데이터
     [SerializeField]
     private PaintBucketVisualData visualData;
+
+    [SerializeField]
+    private AccessibilityDisplaySettings accessibilityDisplaySettings;
     
 
     /// <summary>
@@ -71,8 +74,28 @@ public sealed class PaintBucketGenerator : MonoBehaviour
 
         bucketView.Initialize(
             bucket.Range,
-            bucketSprite);
+            bucketSprite,
+            bucket.PaintType);
+        bucketView.SetAccessibilityDisplaySettings(
+            GetAccessibilityDisplaySettings());
 
         return bucketView;
+    }
+
+    private AccessibilityDisplaySettings GetAccessibilityDisplaySettings()
+    {
+        if (accessibilityDisplaySettings == null)
+        {
+            throw new InvalidOperationException(
+                "PaintBucketGenerator requires an AccessibilityDisplaySettings reference.");
+        }
+
+        if (accessibilityDisplaySettings.ActivePalette == null)
+        {
+            throw new InvalidOperationException(
+                "AccessibilityDisplaySettings requires an active palette.");
+        }
+
+        return accessibilityDisplaySettings;
     }
 }

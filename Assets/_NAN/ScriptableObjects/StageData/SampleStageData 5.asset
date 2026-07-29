@@ -1,0 +1,33 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 29dabe2eb0434ea48f568b2380dfe44f, type: 3}
+  m_Name: SampleStageData 5
+  m_EditorClassIdentifier: Assembly-CSharp::StageData
+  width: 3
+  height: 4
+  paintBuckets:
+  - paintType: 0
+    range: 4
+  - paintType: 2
+    range: 4
+  - paintType: 1
+    range: 4
+  - paintType: 3
+    range: 2
+  wallPositions:
+  - {x: 1, y: 6}
+  - {x: 1, y: 4}
+  - {x: 3, y: 2}
+  - {x: 3, y: 0}
+  answerPaintStates: 050000000000000002000000040000000400000003000000050000000200000003000000050000000100000003000000
+  answerWidth: 3
+  answerHeight: 4

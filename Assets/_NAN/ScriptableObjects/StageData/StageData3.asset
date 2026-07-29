@@ -1,0 +1,30 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 29dabe2eb0434ea48f568b2380dfe44f, type: 3}
+  m_Name: StageData3
+  m_EditorClassIdentifier: Assembly-CSharp::StageData
+  width: 6
+  height: 6
+  title: "RGB\uAC00 \uBAA8\uC774\uBA74"
+  description: "\uBE68\uAC04\uC0C9, \uCD08\uB85D\uC0C9, \uD30C\uB780\uC0C9\uC774
+    \uBAA8\uB450 \uC11E\uC774\uBA74 \uD770\uC0C9\uC774 \uB3FC\uC694"
+  paintBuckets:
+  - paintType: 2
+    range: 3
+  - paintType: 1
+    range: 3
+  - paintType: 0
+    range: 3
+  wallPositions: []
+  answerPaintStates: 010000000100000001000000010000000300000000000000000000000500000001000000030000000200000002000000040000000400000007000000020000000200000002000000040000000400000004000000060000000200000002000000040000000400000004000000000000000200000000000000000000000400000000000000000000000000000000000000
+  answerWidth: 6
+  answerHeight: 6

@@ -18,12 +18,13 @@
 
 ## Unity Editor 작업
 
-- Unity 관련 `unity-cli` 명령은 프로젝트 루트에서 실행하고 프로젝트 경로는 상대 경로 `.`으로 지정한다.
-- Unity 스크립트를 작성하거나 수정한 뒤에는 `unity-cli --project "." editor refresh --compile`로 스크립트 재컴파일을 요청하고 컴파일이 끝날 때까지 기다린다.
-- 컴파일 후에는 `unity-cli --project "." console --type error,warning`으로 Unity Console의 오류와 경고를 확인하고, 변경으로 인해 발생한 문제를 해결한 뒤 다시 검증한다.
+- Unity 관련 `unity-cli` 명령은 프로젝트 루트에서 실행한다. 명령을 실행할 PowerShell 세션에서 `$unityProjectPath = (Resolve-Path -LiteralPath ".").Path.Replace('\', '/')`로 현재 프로젝트의 정규화된 절대 경로를 계산하고, 모든 명령의 `--project "$unityProjectPath"`에 사용한다.
+- 사용자마다 프로젝트 위치가 다를 수 있으므로 `D:/...` 같은 절대 경로를 지침이나 명령에 하드코딩하지 않는다. 상대 경로 `.`도 Unity 인스턴스 탐색에 실패할 수 있으므로 `--project` 값으로 직접 사용하지 않는다.
+- Unity 스크립트를 작성하거나 수정한 뒤에는 `unity-cli --project "$unityProjectPath" editor refresh --compile`로 스크립트 재컴파일을 요청하고 컴파일이 끝날 때까지 기다린다.
+- 컴파일 후에는 `unity-cli --project "$unityProjectPath" console --type error,warning`으로 Unity Console의 오류와 경고를 확인하고, 변경으로 인해 발생한 문제를 해결한 뒤 다시 검증한다.
 - Play Mode 진입·종료, Asset Database 새로고침, 메뉴 실행, 테스트, 씬 또는 GameObject 상태 확인 등 Unity Editor 조작은 `unity-cli`를 사용한다.
-- 여러 Unity Editor 인스턴스가 실행 중일 수 있으므로 모든 `unity-cli` 명령에 `--project "."`을 지정하여 현재 프로젝트의 인스턴스를 명시적으로 선택한다.
-- 에디터 조작 전에는 `unity-cli --project "." status`로 연결 상태와 대상 프로젝트를 확인한다.
+- 여러 Unity Editor 인스턴스가 실행 중일 수 있으므로 모든 `unity-cli` 명령에 `--project "$unityProjectPath"`를 지정하여 현재 프로젝트의 인스턴스를 명시적으로 선택한다.
+- 에디터 조작 전에는 `unity-cli --project "$unityProjectPath" status`로 연결 상태와 대상 프로젝트를 확인한다.
 
 ## Unity 로그 작성
 
