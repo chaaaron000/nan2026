@@ -96,6 +96,7 @@ public sealed class PaintEffectLibrary
         return objectName switch
         {
             "paint" => PaintEffectMaterialType.Center,
+            "Paint" => PaintEffectMaterialType.Edge,
             "Particle System (1)" => PaintEffectMaterialType.Edge,
             "bubble" => PaintEffectMaterialType.Bubble,
             "glow" => PaintEffectMaterialType.Glow,
