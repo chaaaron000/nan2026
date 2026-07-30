@@ -938,11 +938,29 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: baf01c64388c105418328fb634144c34, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::GridTestController
-  stageData: {fileID: 11400000, guid: 313be942d202417468f5ba534abe9725, type: 2}
+  stageData: {fileID: 11400000, guid: 8cd32cfec89c2b546bb38a08d71dfa5d, type: 2}
   gridView: {fileID: 1052171771}
   answerGridView: {fileID: 1702057106}
   bucketController: {fileID: 727864141}
   commandController: {fileID: 613329201}
+  paintEffectLibrary:
+    redCenter: {fileID: 1587400808919824473, guid: f1dfadcb5a601ab4fa8b452cba213b9f, type: 3}
+    redEdge: {fileID: 550146086306503959, guid: 4e7b61c71ae1bee4eafdcebcb2e5a86c, type: 3}
+    greenCenter: {fileID: 1587400808919824473, guid: dbcd181b4313d3e4ab57f984a4bc6fce, type: 3}
+    greenEdge: {fileID: 550146086306503959, guid: c9c48c2e909c05d4e869dda2302a8c03, type: 3}
+    blueCenter: {fileID: 1587400808919824473, guid: 3fc09396608466d4382f15d5938c6dcc, type: 3}
+    blueEdge: {fileID: 550146086306503959, guid: 225b4596ed5ec6443890c1edebf6dfa3, type: 3}
+    yellowCenter: {fileID: 1587400808919824473, guid: cf77ab8fa1b70c744a87f04c87bc84ad, type: 3}
+    yellowEdge: {fileID: 550146086306503959, guid: 1e248a40ee3ab524aabd6d55f670d41e, type: 3}
+    cyanCenter: {fileID: 1587400808919824473, guid: 2b641372f86f2ca4babfc3e8a640fdd4, type: 3}
+    cyanEdge: {fileID: 550146086306503959, guid: 944c13a6554637d4f9dc6c5e29101006, type: 3}
+    magentaCenter: {fileID: 1587400808919824473, guid: 4c561f92f09c6e74c8df0e26ec380739, type: 3}
+    magentaEdge: {fileID: 550146086306503959, guid: df5674c9b1a9ca5458b11064c8e33673, type: 3}
+    whiteCenter: {fileID: 1587400808919824473, guid: 405ea1b1c21cd294d8db05d24ff4704d, type: 3}
+    whiteEdge: {fileID: 550146086306503959, guid: f4ee8d2f52b2903448f28f9b557a22c0, type: 3}
+    referenceCellSize: 1.704
+    sortingLayer: GridPaintEffect
+    playbackSpeed: 1.5
   titleText: {fileID: 52109522}
   descriptionText: {fileID: 79163583}
 --- !u!4 &230329653
@@ -2002,9 +2020,22 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::GridView
   cellPrefab: {fileID: 2765101566019666708, guid: 0fe0e343b11d60241b71edeb145affd8, type: 3}
   placementPanel: {fileID: 2037845393}
-  cellSize: 1
-  wallPrefab: {fileID: 4093090250942324571, guid: 54e79b5935054a41a06542649af917fc, type: 3}
-  wallThickness: 0.1
+  cellSize: 0.68
+  background5x5: {fileID: -3570404378485848906, guid: 944e94be4f06abe4daacfde8adc3e6c0, type: 3}
+  background6x6: {fileID: 8654362925688507905, guid: 6a2e557e151b304428ca979115a3a1ad, type: 3}
+  background7x7: {fileID: 3975538574628034882, guid: f9104c2a4d119e940a3374303485849a, type: 3}
+  frameSprite: {fileID: 21300000, guid: 492fff78459d68742ab42ec5fd26eb91, type: 3}
+  frameInnerRatio: 0.68
+  backgroundSortingLayer: GridBackground
+  frameSortingLayer: GridFrame
+  cellSortingLayer: GridCell
+  wallSortingLayer: GridWall
+  backgroundSortingOrder: 0
+  frameSortingOrder: 10
+  cellSortingOrder: 20
+  wallSortingOrder: 30
+  wallPrefab: {fileID: 529686985271058819, guid: 275db9dd204a31f48861c623e1b0a39c, type: 3}
+  wallThickness: 0.06
   accessibilityDisplaySettings: {fileID: 658118067}
 --- !u!4 &1052171772
 Transform:
@@ -3019,9 +3050,22 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::GridView
   cellPrefab: {fileID: 2765101566019666708, guid: 0fe0e343b11d60241b71edeb145affd8, type: 3}
   placementPanel: {fileID: 47439884}
-  cellSize: 1
-  wallPrefab: {fileID: 4093090250942324571, guid: 54e79b5935054a41a06542649af917fc, type: 3}
-  wallThickness: 0.1
+  cellSize: 0.68
+  background5x5: {fileID: -3570404378485848906, guid: 944e94be4f06abe4daacfde8adc3e6c0, type: 3}
+  background6x6: {fileID: 8654362925688507905, guid: 6a2e557e151b304428ca979115a3a1ad, type: 3}
+  background7x7: {fileID: 3975538574628034882, guid: f9104c2a4d119e940a3374303485849a, type: 3}
+  frameSprite: {fileID: 21300000, guid: 492fff78459d68742ab42ec5fd26eb91, type: 3}
+  frameInnerRatio: 0.68
+  backgroundSortingLayer: GridBackground
+  frameSortingLayer: GridFrame
+  cellSortingLayer: GridCell
+  wallSortingLayer: GridWall
+  backgroundSortingOrder: 0
+  frameSortingOrder: 10
+  cellSortingOrder: 20
+  wallSortingOrder: 30
+  wallPrefab: {fileID: 529686985271058819, guid: 275db9dd204a31f48861c623e1b0a39c, type: 3}
+  wallThickness: 0.06
   accessibilityDisplaySettings: {fileID: 658118067}
 --- !u!4 &1702057107
 Transform:

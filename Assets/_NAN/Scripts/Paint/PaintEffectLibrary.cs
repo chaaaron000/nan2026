@@ -1,0 +1,65 @@
+using System;
+using UnityEngine;
+
+/// <summary>
+/// 최종 물감 상태별 center/edge 이펙트 프리팹과 배치 설정을 제공한다.
+/// </summary>
+[Serializable]
+public sealed class PaintEffectLibrary
+{
+    [SerializeField] private GameObject redCenter;
+    [SerializeField] private GameObject redEdge;
+    [SerializeField] private GameObject greenCenter;
+    [SerializeField] private GameObject greenEdge;
+    [SerializeField] private GameObject blueCenter;
+    [SerializeField] private GameObject blueEdge;
+    [SerializeField] private GameObject yellowCenter;
+    [SerializeField] private GameObject yellowEdge;
+    [SerializeField] private GameObject cyanCenter;
+    [SerializeField] private GameObject cyanEdge;
+    [SerializeField] private GameObject magentaCenter;
+    [SerializeField] private GameObject magentaEdge;
+    [SerializeField] private GameObject whiteCenter;
+    [SerializeField] private GameObject whiteEdge;
+
+    [SerializeField]
+    [Min(0.01f)]
+    [Tooltip("이펙트 프리팹의 채움 파티클이 차지하는 기준 한 변의 월드 크기")]
+    private float referenceCellSize = 1.704f;
+
+    [SerializeField]
+    private string sortingLayer = "GridPaintEffect";
+
+    [SerializeField]
+    [Min(0.1f)]
+    [Tooltip("페인트 파티클과 거리별 확산 연출의 재생 배속")]
+    private float playbackSpeed = 1.5f;
+
+    /// <summary>현재 GridView 크기에 맞출 때 사용할 이펙트 제작 기준 셀 크기를 반환한다.</summary>
+    public float ReferenceCellSize => Mathf.Max(referenceCellSize, 0.01f);
+
+    /// <summary>파티클 렌더러에 적용할 Sorting Layer 이름을 반환한다.</summary>
+    public string SortingLayer => string.IsNullOrWhiteSpace(sortingLayer)
+        ? "GridPaintEffect"
+        : sortingLayer;
+
+    /// <summary>파티클 시뮬레이션과 wave 진행에 함께 적용할 재생 배속을 반환한다.</summary>
+    public float PlaybackSpeed => Mathf.Max(playbackSpeed, 0.1f);
+
+    /// <summary>최종 물감 상태와 연출 종류에 맞는 프리팹을 반환한다.</summary>
+    public GameObject GetPrefab(PaintState paintState, bool center)
+    {
+        return paintState switch
+        {
+            PaintState.Red => center ? redCenter : redEdge,
+            PaintState.Green => center ? greenCenter : greenEdge,
+            PaintState.Blue => center ? blueCenter : blueEdge,
+            PaintState.Yellow => center ? yellowCenter : yellowEdge,
+            PaintState.Cyan => center ? cyanCenter : cyanEdge,
+            PaintState.Magenta => center ? magentaCenter : magentaEdge,
+            PaintState.White => center ? whiteCenter : whiteEdge,
+            PaintState.Empty => null,
+            _ => throw new ArgumentOutOfRangeException(nameof(paintState), paintState, "Unsupported paint state."),
+        };
+    }
+}

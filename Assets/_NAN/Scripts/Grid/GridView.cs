@@ -17,6 +17,48 @@ public sealed class GridView : MonoBehaviour
     [SerializeField]
     private float cellSize = 1f;
 
+    [Header("격자 배경 및 프레임")]
+    [SerializeField]
+    private Sprite background5x5;
+
+    [SerializeField]
+    private Sprite background6x6;
+
+    [SerializeField]
+    private Sprite background7x7;
+
+    [SerializeField]
+    private Sprite frameSprite;
+
+    [SerializeField]
+    [Range(0.1f, 1f)]
+    [Tooltip("프레임 원본 이미지에서 보드가 들어가는 내부 개구부의 전체 폭 대비 비율")]
+    private float frameInnerRatio = 0.68f;
+
+    [SerializeField]
+    private string backgroundSortingLayer = "GridBackground";
+
+    [SerializeField]
+    private string frameSortingLayer = "GridFrame";
+
+    [SerializeField]
+    private string cellSortingLayer = "GridCell";
+
+    [SerializeField]
+    private string wallSortingLayer = "GridWall";
+
+    [SerializeField]
+    private int backgroundSortingOrder;
+
+    [SerializeField]
+    private int frameSortingOrder = 10;
+
+    [SerializeField]
+    private int cellSortingOrder = 20;
+
+    [SerializeField]
+    private int wallSortingOrder = 30;
+
     [SerializeField]
     private GameObject wallPrefab;
 
@@ -34,9 +76,27 @@ public sealed class GridView : MonoBehaviour
 
     private GameObject[] wallObjects;
 
+    private GameObject backgroundObject;
+
+    private GameObject frameObject;
+
     // 생성된 격자의 크기, cell 좌표 계산에 사용
     private int gridWidth;
     private int gridHeight;
+
+    /// <summary>현재 생성되는 셀 한 변의 월드 크기를 반환한다.</summary>
+    public float CellSize => cellSize;
+
+    /// <summary>논리 셀 좌표를 GridView 기준 로컬 위치로 변환한다.</summary>
+    public Vector3 GetCellLocalPosition(Vector2Int gridPosition)
+    {
+        if (!GridIndexUtility.IsInside(gridPosition, gridWidth, gridHeight))
+        {
+            throw new ArgumentOutOfRangeException(nameof(gridPosition), gridPosition, "Position is outside the grid.");
+        }
+
+        return GridToLocalPosition(gridPosition);
+    }
 
     /// <summary>
     /// 격자 상태에 따라 셀과 벽을 생성하고 상호작용 여부를 설정한다.
@@ -51,6 +111,8 @@ public sealed class GridView : MonoBehaviour
 
         gridWidth = gridState.Width;
         gridHeight = gridState.Height;
+
+        CreateBoardDecorations();
 
         cellViews = new CellView[gridState.Width * gridState.Height];
 
@@ -99,6 +161,18 @@ public sealed class GridView : MonoBehaviour
 
             wallObjects = null;
         }
+
+        if (backgroundObject != null)
+        {
+            Destroy(backgroundObject);
+            backgroundObject = null;
+        }
+
+        if (frameObject != null)
+        {
+            Destroy(frameObject);
+            frameObject = null;
+        }
     }
 
     /// <summary>
@@ -112,6 +186,10 @@ public sealed class GridView : MonoBehaviour
 
         //셀 좌표에 해당하는 포지션값을 구해옴
         cellView.transform.localPosition = GridToLocalPosition(gridPosition);
+        FitCellToCellSize(cellView);
+
+        SpriteRenderer cellRenderer = cellView.GetComponent<SpriteRenderer>();
+        SetSorting(cellRenderer, cellSortingLayer, cellSortingOrder);
 
         cellView.Initialize(gridPosition);
         cellView.SetInteractable(interactable);
@@ -198,9 +276,9 @@ public sealed class GridView : MonoBehaviour
             // y가 홀수면 상하 셀 사이의 가로 벽이다.
             bool isVertical = GridLayoutUtility.IsVerticalWall(wallPosition);
 
-            wallObject.transform.localScale = isVertical
-                ? new Vector3(wallThickness, cellSize, 1f)
-                : new Vector3(cellSize, wallThickness, 1f);
+            SpriteRenderer wallRenderer = wallObject.GetComponent<SpriteRenderer>();
+            FitWallToCellSize(wallObject, wallRenderer, isVertical);
+            SetSorting(wallRenderer, wallSortingLayer, wallSortingOrder);
 
             wallObjects[index] = wallObject;
             index++;
@@ -231,6 +309,184 @@ public sealed class GridView : MonoBehaviour
         Vector2 localPosition = GridLayoutUtility.GetWallLocalPosition(wallPosition, gridWidth, gridHeight, cellSize);
 
         return new Vector3(localPosition.x, localPosition.y, 0f);
+    }
+
+    private void CreateBoardDecorations()
+    {
+        Sprite backgroundSprite = GetBackgroundSprite(gridWidth, gridHeight);
+
+        if (backgroundSprite != null)
+        {
+            backgroundObject = CreateSpriteObject(
+                "Grid Background",
+                backgroundSprite,
+                backgroundSortingLayer,
+                backgroundSortingOrder);
+
+            FitSpriteToSize(
+                backgroundObject.GetComponent<SpriteRenderer>(),
+                gridWidth * cellSize,
+                gridHeight * cellSize,
+                true);
+        }
+
+        if (frameSprite != null)
+        {
+            frameObject = CreateSpriteObject(
+                "Grid Frame",
+                frameSprite,
+                frameSortingLayer,
+                frameSortingOrder);
+
+            // T_Frame의 중앙은 투명하지 않으며 실제 내부 개구부는 전체 폭의 약 68%다.
+            // 보드 전체가 장식 안쪽에 들어가도록 개구부 비율을 역산해 프레임 크기를 정한다.
+            float boardSize = Mathf.Max(gridWidth, gridHeight) * cellSize;
+            float frameSize = boardSize / Mathf.Max(frameInnerRatio, 0.1f);
+
+            FitSpriteToSize(
+                frameObject.GetComponent<SpriteRenderer>(),
+                frameSize,
+                frameSize,
+                true);
+        }
+    }
+
+    private Sprite GetBackgroundSprite(int width, int height)
+    {
+        if (width == 5 && height == 5)
+        {
+            return background5x5;
+        }
+
+        if (width == 6 && height == 6)
+        {
+            return background6x6;
+        }
+
+        if (width == 7 && height == 7)
+        {
+            return background7x7;
+        }
+
+        return null;
+    }
+
+    private GameObject CreateSpriteObject(
+        string objectName,
+        Sprite sprite,
+        string sortingLayer,
+        int sortingOrder)
+    {
+        GameObject child = new GameObject(objectName);
+        child.transform.SetParent(transform, false);
+        child.transform.localPosition = Vector3.zero;
+
+        SpriteRenderer renderer = child.AddComponent<SpriteRenderer>();
+        renderer.sprite = sprite;
+        SetSorting(renderer, sortingLayer, sortingOrder);
+        return child;
+    }
+
+    private void FitCellToCellSize(CellView cellView)
+    {
+        SpriteRenderer renderer = cellView.GetComponent<SpriteRenderer>();
+
+        if (renderer == null || renderer.sprite == null)
+        {
+            return;
+        }
+
+        Vector2 currentSize = Vector2.Scale(
+            renderer.sprite.bounds.size,
+            new Vector2(
+                Mathf.Abs(cellView.transform.localScale.x),
+                Mathf.Abs(cellView.transform.localScale.y)));
+        float largestSide = Mathf.Max(currentSize.x, currentSize.y);
+
+        if (largestSide > 0f)
+        {
+            cellView.transform.localScale *= cellSize / largestSide;
+        }
+
+        BoxCollider2D hitCollider = cellView.GetComponent<BoxCollider2D>();
+
+        if (hitCollider != null)
+        {
+            // 셀 Sprite가 교체돼도 클릭 영역이 렌더 영역과 정확히 일치하도록 맞춘다.
+            // 빈 셀은 SpriteRenderer만 숨기므로 Collider는 계속 입력을 받을 수 있다.
+            hitCollider.size = renderer.sprite.bounds.size;
+            hitCollider.offset = renderer.sprite.bounds.center;
+        }
+    }
+
+    private void FitWallToCellSize(
+        GameObject wallObject,
+        SpriteRenderer renderer,
+        bool isVertical)
+    {
+        if (renderer == null || renderer.sprite == null)
+        {
+            wallObject.transform.localScale = isVertical
+                ? new Vector3(wallThickness, cellSize, 1f)
+                : new Vector3(cellSize, wallThickness, 1f);
+            return;
+        }
+
+        // 프리팹 Transform 스케일이 적용된 bounds를 다시 스케일 기준으로 사용하면
+        // Wall 길이가 약 두 배로 커진다. Sprite 원본의 실제 막대 크기를 기준으로 맞춘다.
+        Vector2 spriteSize = renderer.sprite.bounds.size;
+        float spriteWidth = Mathf.Max(spriteSize.x, 0.0001f);
+        float spriteHeight = Mathf.Max(spriteSize.y, 0.0001f);
+
+        wallObject.transform.localRotation = isVertical
+            ? Quaternion.identity
+            : Quaternion.Euler(0f, 0f, 90f);
+
+        wallObject.transform.localScale = new Vector3(
+            wallThickness / spriteWidth,
+            cellSize / spriteHeight,
+            1f);
+    }
+
+    private void FitSpriteToSize(
+        SpriteRenderer renderer,
+        float targetWidth,
+        float targetHeight,
+        bool preserveAspect)
+    {
+        if (renderer == null || renderer.sprite == null)
+        {
+            return;
+        }
+
+        Vector2 sourceSize = renderer.sprite.bounds.size;
+        float scaleX = targetWidth / Mathf.Max(sourceSize.x, 0.0001f);
+        float scaleY = targetHeight / Mathf.Max(sourceSize.y, 0.0001f);
+
+        if (preserveAspect)
+        {
+            float scale = Mathf.Min(scaleX, scaleY);
+            renderer.transform.localScale = new Vector3(scale, scale, 1f);
+            return;
+        }
+
+        renderer.transform.localScale = new Vector3(scaleX, scaleY, 1f);
+    }
+
+    private void SetSorting(
+        Renderer renderer,
+        string sortingLayer,
+        int sortingOrder)
+    {
+        if (renderer == null)
+        {
+            return;
+        }
+
+        renderer.sortingLayerName = string.IsNullOrWhiteSpace(sortingLayer)
+            ? "Default"
+            : sortingLayer;
+        renderer.sortingOrder = sortingOrder;
     }
 
     /// <summary>

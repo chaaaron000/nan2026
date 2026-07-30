@@ -57,6 +57,8 @@ public sealed class PaintBucketController
     // 현재 플레이어가 선택한 물감통
     private BucketEntry selectedBucket;
 
+    private bool inputEnabled = true;
+
     /// <summary>
     /// 선택된 물감통을 특정 셀에 사용하려 할 때 발생한다.
     /// 물감통 ID, 물감통 데이터, 클릭한 셀 좌표를 전달한다.
@@ -65,6 +67,12 @@ public sealed class PaintBucketController
         int,
         PaintBucket,
         Vector2Int> BucketUseRequested;
+
+    /// <summary>물감통 선택과 셀 사용 요청 입력의 허용 여부를 설정한다.</summary>
+    public void SetInputEnabled(bool enabled)
+    {
+        inputEnabled = enabled;
+    }
 
     /// <summary>
     /// 현재 스테이지의 물감통 데이터로
@@ -189,7 +197,7 @@ public sealed class PaintBucketController
     private void HandleBucketClicked(
         PaintBucketView clickedView)
     {
-        if (!isActiveAndEnabled)
+        if (!isActiveAndEnabled || !inputEnabled)
         {
             return;
         }
@@ -236,7 +244,7 @@ public sealed class PaintBucketController
     private void HandleCellClicked(
         Vector2Int gridPosition)
     {
-        if (!isActiveAndEnabled)
+        if (!isActiveAndEnabled || !inputEnabled)
         {
             return;
         }

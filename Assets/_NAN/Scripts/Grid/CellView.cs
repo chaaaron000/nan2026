@@ -21,6 +21,31 @@ public sealed class CellView : MonoBehaviour, IPointerClickHandler
     [SerializeField]
     private TMP_Text symbolText;
 
+    [Header("아트 머티리얼")]
+    [SerializeField]
+    private Material emptyMaterial;
+
+    [SerializeField]
+    private Material redMaterial;
+
+    [SerializeField]
+    private Material greenMaterial;
+
+    [SerializeField]
+    private Material blueMaterial;
+
+    [SerializeField]
+    private Material yellowMaterial;
+
+    [SerializeField]
+    private Material cyanMaterial;
+
+    [SerializeField]
+    private Material magentaMaterial;
+
+    [SerializeField]
+    private Material whiteMaterial;
+
     // 셀의 물감 상태를 칠할 스프라이트 렌더러.
     private SpriteRenderer spriteRenderer;
 
@@ -124,7 +149,22 @@ public sealed class CellView : MonoBehaviour, IPointerClickHandler
         }
 
         ColorPaletteSO palette = displaySettings.ActivePalette;
-        spriteRenderer.color = palette.GetColor(currentPaintState);
+        Material targetMaterial = GetMaterial(currentPaintState);
+
+        // 빈 셀은 배경 격자가 담당하므로 셀 SpriteRenderer를 숨긴다.
+        // 칠해진 셀만 아트 머티리얼을 가진 SpriteRenderer를 표시한다.
+        spriteRenderer.enabled = currentPaintState != PaintState.Empty || targetMaterial != null;
+
+        // 공유 머티리얼만 교체하여 셀 수만큼 런타임 머티리얼 인스턴스가 생기지 않게 한다.
+        if (targetMaterial != null && spriteRenderer.sharedMaterial != targetMaterial)
+        {
+            spriteRenderer.sharedMaterial = targetMaterial;
+        }
+
+        // 아트 머티리얼이 없는 Empty 상태나 접근성용 기본 프리팹은 기존 팔레트를 사용한다.
+        spriteRenderer.color = targetMaterial == null
+            ? palette.GetColor(currentPaintState)
+            : Color.white;
 
         if (symbolText == null)
         {
@@ -175,5 +215,21 @@ public sealed class CellView : MonoBehaviour, IPointerClickHandler
     private void HandleSymbolsEnabledChanged(bool enabled)
     {
         RefreshVisual();
+    }
+
+    private Material GetMaterial(PaintState paintState)
+    {
+        return paintState switch
+        {
+            PaintState.Empty => emptyMaterial,
+            PaintState.Red => redMaterial,
+            PaintState.Green => greenMaterial,
+            PaintState.Blue => blueMaterial,
+            PaintState.Yellow => yellowMaterial,
+            PaintState.Cyan => cyanMaterial,
+            PaintState.Magenta => magentaMaterial,
+            PaintState.White => whiteMaterial,
+            _ => null,
+        };
     }
 }

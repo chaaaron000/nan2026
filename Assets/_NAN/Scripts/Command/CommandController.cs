@@ -10,10 +10,18 @@ public sealed class CommandController : MonoBehaviour
     // 실행되는 커맨드가 쌓일 스택
     private readonly Stack<ICommand> undoStack = new();
 
+    private bool inputEnabled = true;
+
     /// <summary>
     /// 현재 되돌릴 수 있는 커맨드가 있는지 나타내는 프로퍼티
     /// </summary>
     public bool CanUndo => undoStack.Count > 0;
+
+    /// <summary>새 커맨드 실행과 Undo/Clear UI 입력의 허용 여부를 설정한다.</summary>
+    public void SetInputEnabled(bool enabled)
+    {
+        inputEnabled = enabled;
+    }
 
     /// <summary>
     /// 커맨드를 실행하고 성공한 커맨드만 이력에 기록한다.
@@ -23,6 +31,11 @@ public sealed class CommandController : MonoBehaviour
         if (command == null)
         {
             throw new ArgumentNullException(nameof(command));
+        }
+
+        if (!inputEnabled)
+        {
+            return false;
         }
 
         // 커맨드 실행 및 실패시 false 반환하고 return
@@ -40,7 +53,7 @@ public sealed class CommandController : MonoBehaviour
     /// </summary>
     public void HandleUndoButtonClicked()
     {
-        if (!CanUndo)
+        if (!inputEnabled || !CanUndo)
         {
             return;
         }
@@ -57,7 +70,7 @@ public sealed class CommandController : MonoBehaviour
     /// </summary>
     private bool UndoLast()
     {
-        if (undoStack.Count == 0)
+        if (!inputEnabled || undoStack.Count == 0)
         {
             return false;
         }
@@ -73,7 +86,7 @@ public sealed class CommandController : MonoBehaviour
     /// </summary>
     public void HandleClearButtonClicked()
     {
-        if (undoStack.Count == 0)
+        if (!inputEnabled || undoStack.Count == 0)
         {
             return;
         }

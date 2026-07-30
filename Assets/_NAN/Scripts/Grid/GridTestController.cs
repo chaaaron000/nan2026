@@ -1,3 +1,4 @@
+using System.Collections;
 using UnityEngine;
 using TMPro;
 
@@ -28,6 +29,9 @@ public sealed class GridTestController : MonoBehaviour
     [SerializeField]
     private CommandController commandController;
 
+    [SerializeField]
+    private PaintEffectLibrary paintEffectLibrary = new();
+
     [SerializeField] private TextMeshProUGUI titleText;
     [SerializeField] private TextMeshProUGUI descriptionText;
     
@@ -41,6 +45,10 @@ public sealed class GridTestController : MonoBehaviour
     // 현재는 벽을 고려하지 않는 임시 확산 계산기
     private readonly PaintSpreadCalculator
         spreadCalculator = new();
+
+    private PaintSpreadSequencePlayer sequencePlayer;
+    private Coroutine paintSequenceCoroutine;
+    private PaintApplicationPlan activePlan;
 
     private void Start()
     {
@@ -60,6 +68,10 @@ public sealed class GridTestController : MonoBehaviour
             return;
         }
 
+        sequencePlayer = new PaintSpreadSequencePlayer(
+            gridView,
+            paintEffectLibrary);
+
         CreateTestGrid();
     }
 
@@ -73,6 +85,8 @@ public sealed class GridTestController : MonoBehaviour
     {
         bucketController.BucketUseRequested -=
             HandleBucketUseRequested;
+
+        CompleteActiveSequenceImmediately();
     }
 
     /// <summary>
@@ -81,6 +95,8 @@ public sealed class GridTestController : MonoBehaviour
     /// </summary>
     public void CreateTestGrid()
     {
+        CompleteActiveSequenceImmediately();
+
         SoundManager.Instance?.PlayBgm(
             SoundKeys.StageBgm);
 
@@ -138,7 +154,7 @@ public sealed class GridTestController : MonoBehaviour
             return;
         }
 
-        ICommand command =
+        PaintBucketUseCommand command =
             new PaintBucketUseCommand(
                 bucketId,
                 bucket,
@@ -155,12 +171,63 @@ public sealed class GridTestController : MonoBehaviour
 
         if (commandController.Execute(command))
         {
-            stageClearChecker.Check(gridState);
+            activePlan = command.Plan;
+            SetGameplayInputEnabled(false);
+            paintSequenceCoroutine = StartCoroutine(
+                sequencePlayer.Play(
+                    activePlan,
+                    HandlePaintSequenceCompleted));
         }
+    }
+
+    private void HandlePaintSequenceCompleted()
+    {
+        paintSequenceCoroutine = null;
+        activePlan = null;
+        SetGameplayInputEnabled(true);
+        stageClearChecker.Check(gridState);
+    }
+
+    private void CompleteActiveSequenceImmediately()
+    {
+        if (activePlan == null)
+        {
+            return;
+        }
+
+        sequencePlayer?.CompleteImmediately();
+
+        if (paintSequenceCoroutine != null)
+        {
+            StopCoroutine(paintSequenceCoroutine);
+            paintSequenceCoroutine = null;
+        }
+
+        foreach (PaintSpreadWave wave in activePlan.Waves)
+        {
+            foreach (PaintSpreadCellStep step in wave.Steps)
+            {
+                gridView.SetCellPaint(step.Position, step.ResultState);
+            }
+        }
+
+        activePlan = null;
+        SetGameplayInputEnabled(true);
+    }
+
+    private void SetGameplayInputEnabled(bool enabled)
+    {
+        bucketController.SetInputEnabled(enabled);
+        commandController.SetInputEnabled(enabled);
     }
 
     private void HandleStageCleared()
     {
         DebugConsole.Log("Stage cleared.");
+    }
+
+    private void OnDestroy()
+    {
+        sequencePlayer?.Dispose();
     }
 }

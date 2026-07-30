@@ -1,154 +1,162 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
-/// 물감통이 도달할 셀 좌표를 계산한다.
-/// 현재는 벽이 없는 격자의 맨해튼 거리를 사용한다.
+/// 벽을 고려한 최단 거리 BFS로 물감 확산 계획을 계산한다.
 /// </summary>
 public sealed class PaintSpreadCalculator
 {
-    // BFS Queue에 저장할 셀 좌표와 최단 거리
     private readonly struct SearchNode
     {
         public Vector2Int Position { get; }
         public int Distance { get; }
 
-        public SearchNode(
-            Vector2Int position,
-            int distance)
+        public SearchNode(Vector2Int position, int distance)
         {
             Position = position;
             Distance = distance;
         }
     }
-    
-    // 모든 셀에서 검사할 네 방향
+
     private static readonly GridDirection[] Directions =
     {
         GridDirection.UP,
         GridDirection.RIGHT,
         GridDirection.DOWN,
-        GridDirection.LEFT
+        GridDirection.LEFT,
     };
 
     /// <summary>
-    /// 시작 셀을 포함해 최대 range - 1회 이동하여
-    /// 도달할 수 있는 모든 셀 좌표를 반환한다.
+    /// 시작 셀을 거리 0으로 두고 최대 range - 1회 이동한 거리별 불변 확산 계획을 만든다.
+    /// 같은 최단 거리로 여러 경로가 도달하면 들어온 방향을 모두 누적한다.
     /// </summary>
-    public IReadOnlyList<Vector2Int> Calculate(
+    public PaintApplicationPlan Calculate(
         GridState gridState,
         Vector2Int origin,
-        int range)
+        int range,
+        PaintType paintType)
     {
         if (gridState == null)
         {
-            throw new ArgumentNullException(
-                nameof(gridState));
+            throw new ArgumentNullException(nameof(gridState));
         }
 
         if (!gridState.IsInside(origin))
         {
-            throw new ArgumentOutOfRangeException(
-                nameof(origin),
-                origin,
-                "Origin is outside the grid.");
+            throw new ArgumentOutOfRangeException(nameof(origin), origin, "Origin is outside the grid.");
         }
 
         if (range < 1)
         {
-            throw new ArgumentOutOfRangeException(
-                nameof(range),
-                range,
-                "Range must be at least one.");
+            throw new ArgumentOutOfRangeException(nameof(range), range, "Range must be at least one.");
         }
 
-        int cellCount =
-            gridState.Width * gridState.Height;
+        int cellCount = gridState.Width * gridState.Height;
+        int maxDistance = range - 1;
+        int[] distances = new int[cellCount];
+        PaintIncomingDirection[] incomingDirections = new PaintIncomingDirection[cellCount];
+        List<Vector2Int>[] positionsByDistance = new List<Vector2Int>[maxDistance + 1];
 
-        // 영향받는 좌표들을 담아 반환할 리스트
-        List<Vector2Int> affectedPositions =
-            new();
+        Array.Fill(distances, -1);
+        for (int distance = 0; distance <= maxDistance; distance++)
+        {
+            positionsByDistance[distance] = new List<Vector2Int>();
+        }
 
-        // 순회용 큐 생성
-        Queue<SearchNode> queue =
-            new();
+        Queue<SearchNode> queue = new();
+        int originIndex = GridIndexUtility.ToIndex(origin, gridState.Width, gridState.Height);
+        distances[originIndex] = 0;
+        positionsByDistance[0].Add(origin);
+        queue.Enqueue(new SearchNode(origin, 0));
 
-        // Vector2Int HashSet보다 셀 인덱스 배열을 사용하는 편이
-        // 현재처럼 고정 크기 격자에서는 조회와 메모리 면에서 단순하다.
-        bool[] visited =
-            new bool[cellCount];
-
-        int maxDistance =
-            range - 1;
-
-        int originIndex =
-            GridIndexUtility.ToIndex(
-                origin,
-                gridState.Width,
-                gridState.Height);
-
-        visited[originIndex] = true;
-
-        queue.Enqueue(
-            new SearchNode(
-                origin,
-                0));
-
-        // BFS, 상하좌우 방향으로 포지션을 queue에 넣어가며 순회
         while (queue.Count > 0)
         {
-            SearchNode current =
-                queue.Dequeue();
-
-            affectedPositions.Add(
-                current.Position);
-
-            // 현재 셀이 최대 거리에 도달했다면
-            // 결과에는 포함하되 이웃 셀로 더 확장하지 않는다.
+            SearchNode current = queue.Dequeue();
             if (current.Distance >= maxDistance)
             {
                 continue;
             }
 
-            // 네 방향으로 순회
-            foreach (GridDirection direction
-                     in Directions)
+            foreach (GridDirection direction in Directions)
             {
-                // 벽에 막히면 continue
-                if (!gridState.CanMove(
-                        current.Position,
-                        direction))
-                {
-                    continue;
-                }
-                
-                Vector2Int nextPosition =
-                    current.Position
-                    + direction.ToOffset();
-
-                int nextIndex =
-                    GridIndexUtility.ToIndex(
-                        nextPosition,
-                        gridState.Width,
-                        gridState.Height);
-
-                if (visited[nextIndex])
+                if (!gridState.CanMove(current.Position, direction))
                 {
                     continue;
                 }
 
-                // 같은 셀이 여러 경로를 통해 Queue에
-                // 중복 추가되지 않도록 삽입 시점에 방문 처리한다.
-                visited[nextIndex] = true;
+                Vector2Int next = current.Position + direction.ToOffset();
+                int nextDistance = current.Distance + 1;
+                int nextIndex = GridIndexUtility.ToIndex(next, gridState.Width, gridState.Height);
+                PaintIncomingDirection incoming = ToIncomingDirection(direction);
 
-                queue.Enqueue(
-                    new SearchNode(
-                        nextPosition,
-                        current.Distance + 1));
+                if (distances[nextIndex] < 0)
+                {
+                    distances[nextIndex] = nextDistance;
+                    incomingDirections[nextIndex] = incoming;
+                    positionsByDistance[nextDistance].Add(next);
+                    queue.Enqueue(new SearchNode(next, nextDistance));
+                    continue;
+                }
+
+                // 더 긴 경로는 버리고, 같은 최단 거리로 들어온 새 방향만 중첩한다.
+                if (distances[nextIndex] == nextDistance)
+                {
+                    incomingDirections[nextIndex] |= incoming;
+                }
             }
         }
 
-        return affectedPositions;
+        PaintState addedPaint = ToPaintState(paintType);
+        List<PaintSpreadWave> waves = new(positionsByDistance.Length);
+
+        for (int distance = 0; distance < positionsByDistance.Length; distance++)
+        {
+            List<PaintSpreadCellStep> steps = new(positionsByDistance[distance].Count);
+            foreach (Vector2Int position in positionsByDistance[distance])
+            {
+                int index = GridIndexUtility.ToIndex(position, gridState.Width, gridState.Height);
+                PaintState previous = gridState.GetPaint(position);
+                PaintState result = paintType == PaintType.Clear
+                    ? PaintState.Empty
+                    : previous | addedPaint;
+
+                steps.Add(new PaintSpreadCellStep(
+                    position,
+                    distance,
+                    incomingDirections[index],
+                    previous,
+                    result));
+            }
+
+            waves.Add(new PaintSpreadWave(distance, steps));
+        }
+
+        return new PaintApplicationPlan(waves);
+    }
+
+    /// <summary>물감통 종류를 셀의 비트 플래그 물감 상태로 변환한다.</summary>
+    public static PaintState ToPaintState(PaintType paintType)
+    {
+        return paintType switch
+        {
+            PaintType.Red => PaintState.Red,
+            PaintType.Green => PaintState.Green,
+            PaintType.Blue => PaintState.Blue,
+            PaintType.Clear => PaintState.Empty,
+            _ => throw new ArgumentOutOfRangeException(nameof(paintType), paintType, "Unsupported paint type."),
+        };
+    }
+
+    private static PaintIncomingDirection ToIncomingDirection(GridDirection direction)
+    {
+        return direction switch
+        {
+            GridDirection.UP => PaintIncomingDirection.FromBelow,
+            GridDirection.RIGHT => PaintIncomingDirection.FromLeft,
+            GridDirection.DOWN => PaintIncomingDirection.FromAbove,
+            GridDirection.LEFT => PaintIncomingDirection.FromRight,
+            _ => throw new ArgumentOutOfRangeException(nameof(direction), direction, "Unsupported grid direction."),
+        };
     }
 }
