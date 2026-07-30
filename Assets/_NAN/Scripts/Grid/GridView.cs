@@ -195,6 +195,7 @@ public sealed class GridView : MonoBehaviour
 
         SpriteRenderer cellRenderer = cellView.GetComponent<SpriteRenderer>();
         SetSorting(cellRenderer, cellSortingLayer, cellSortingOrder);
+        cellView.SetSymbolSorting(cellSortingLayer, cellSortingOrder + 1);
 
         cellView.Initialize(gridPosition);
         cellView.SetInteractable(interactable);

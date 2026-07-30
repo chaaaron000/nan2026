@@ -71,6 +71,30 @@ public sealed class CellView : MonoBehaviour, IPointerClickHandler
     }
 
     /// <summary>
+    /// 셀 아트보다 심볼이 앞에 표시되도록 심볼 렌더러의 정렬 정보를 설정한다.
+    /// </summary>
+    /// <param name="sortingLayerName">심볼을 표시할 Sorting Layer 이름.</param>
+    /// <param name="sortingOrder">셀 아트보다 큰 심볼 Sorting Order.</param>
+    public void SetSymbolSorting(string sortingLayerName, int sortingOrder)
+    {
+        if (symbolText == null)
+        {
+            return;
+        }
+
+        Renderer symbolRenderer = symbolText.GetComponent<Renderer>();
+        if (symbolRenderer == null)
+        {
+            return;
+        }
+
+        symbolRenderer.sortingLayerName = string.IsNullOrWhiteSpace(sortingLayerName)
+            ? "Default"
+            : sortingLayerName;
+        symbolRenderer.sortingOrder = sortingOrder;
+    }
+
+    /// <summary>
     /// 마우스 클릭 또는 터치 입력을 받아 셀 클릭 이벤트를 발생시킨다.
     /// </summary>
     /// <param name="eventData">발생한 포인터 이벤트 데이터.</param>
@@ -158,6 +182,7 @@ public sealed class CellView : MonoBehaviour, IPointerClickHandler
 
         symbolText.text = PaintStateVisualUtility.GetSymbol(currentPaintState);
         symbolText.color = palette.GetSymbolColor(currentPaintState);
+        FitSymbolToCell();
     }
 
     private void SubscribeDisplaySettings()
@@ -192,6 +217,40 @@ public sealed class CellView : MonoBehaviour, IPointerClickHandler
     private void HandleSymbolsEnabledChanged(bool enabled)
     {
         RefreshVisual();
+    }
+
+    private void FitSymbolToCell()
+    {
+        if (spriteRenderer == null || spriteRenderer.sprite == null || symbolText == null)
+        {
+            return;
+        }
+
+        Renderer symbolRenderer = symbolText.GetComponent<Renderer>();
+        if (symbolRenderer == null)
+        {
+            return;
+        }
+
+        // 부모 셀은 아트 Sprite의 원본 크기에 맞춰 계속 스케일이 바뀌므로,
+        // 심볼의 로컬 스케일을 먼저 초기화한 뒤 현재 셀 크기에 맞춰 다시 계산한다.
+        symbolText.transform.localScale = Vector3.one;
+        symbolText.ForceMeshUpdate();
+
+        float currentSymbolSize = Mathf.Max(
+            symbolRenderer.bounds.size.x,
+            symbolRenderer.bounds.size.y);
+        float targetSymbolSize = Mathf.Max(
+            spriteRenderer.bounds.size.x,
+            spriteRenderer.bounds.size.y) * 0.45f;
+
+        if (currentSymbolSize <= 0.0001f)
+        {
+            return;
+        }
+
+        float scale = targetSymbolSize / currentSymbolSize;
+        symbolText.transform.localScale = Vector3.one * scale;
     }
 
 }
