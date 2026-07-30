@@ -21,6 +21,7 @@ public sealed class PaintEffectLibrary
     [SerializeField] private GameObject magentaEdge;
     [SerializeField] private GameObject whiteCenter;
     [SerializeField] private GameObject whiteEdge;
+    [SerializeField] private GameObject clear;
 
     [SerializeField]
     [Min(0.01f)]
@@ -45,6 +46,9 @@ public sealed class PaintEffectLibrary
 
     /// <summary>파티클 시뮬레이션과 wave 진행에 함께 적용할 재생 배속을 반환한다.</summary>
     public float PlaybackSpeed => Mathf.Max(playbackSpeed, 0.1f);
+
+    /// <summary>범위 지우기 연출에 사용할 프리팹을 반환한다.</summary>
+    public GameObject ClearPrefab => clear;
 
     /// <summary>최종 물감 상태와 연출 종류에 맞는 프리팹을 반환한다.</summary>
     public GameObject GetPrefab(PaintState paintState, bool center)

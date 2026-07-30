@@ -1007,6 +1007,7 @@ MonoBehaviour:
     magentaEdge: {fileID: 550146086306503959, guid: df5674c9b1a9ca5458b11064c8e33673, type: 3}
     whiteCenter: {fileID: 1587400808919824473, guid: 405ea1b1c21cd294d8db05d24ff4704d, type: 3}
     whiteEdge: {fileID: 550146086306503959, guid: f4ee8d2f52b2903448f28f9b557a22c0, type: 3}
+    clear: {fileID: 624885739508446954, guid: e04a164ba1726954ca74dbaf87ef4308, type: 3}
     referenceCellSize: 1.704
     sortingLayer: GridPaintEffect
     playbackSpeed: 1.5

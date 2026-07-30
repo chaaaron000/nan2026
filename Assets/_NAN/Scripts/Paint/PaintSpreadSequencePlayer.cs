@@ -32,9 +32,9 @@ public sealed class PaintSpreadSequencePlayer : IDisposable
     }
 
     /// <summary>
-    /// center부터 거리 오름차순으로 연출한 뒤 같은 wave의 셀 재질을 동시에 변경한다.
+    /// 일반 물감은 거리순으로 확산하고, 지우기 물감은 범위 전체의 연출과 셀 변경을 동시에 시작한다.
     /// </summary>
-    public IEnumerator Play(PaintApplicationPlan plan, Action completed)
+    public IEnumerator Play(PaintApplicationPlan plan, PaintType paintType, Action completed)
     {
         if (plan == null)
         {
@@ -42,6 +42,13 @@ public sealed class PaintSpreadSequencePlayer : IDisposable
         }
 
         cancellationRequested = false;
+
+        if (paintType == PaintType.Clear)
+        {
+            yield return PlayClear(plan);
+            completed?.Invoke();
+            yield break;
+        }
 
         foreach (PaintSpreadWave wave in plan.Waves)
         {
@@ -80,6 +87,46 @@ public sealed class PaintSpreadSequencePlayer : IDisposable
         }
 
         completed?.Invoke();
+    }
+
+    private IEnumerator PlayClear(PaintApplicationPlan plan)
+    {
+        List<GameObject> clearEffects = new();
+        GameObject clearPrefab = effectLibrary.ClearPrefab;
+
+        if (clearPrefab != null)
+        {
+            float scale = gridView.CellSize / effectLibrary.ReferenceCellSize;
+            foreach (PaintSpreadWave wave in plan.Waves)
+            {
+                foreach (PaintSpreadCellStep step in wave.Steps)
+                {
+                    GameObject effect = effectPool.Spawn(
+                        clearPrefab,
+                        gridView.GetCellLocalPosition(step.Position),
+                        Quaternion.identity,
+                        scale);
+                    activeEffects.Add(effect);
+                    clearEffects.Add(effect);
+                }
+            }
+        }
+
+        // 지우기 물감은 거리별 확산 없이 모든 대상 셀의 연출과 상태 변경을 같은 프레임에 시작한다.
+        ApplyAllResults(plan);
+
+        if (clearEffects.Count == 0)
+        {
+            yield break;
+        }
+
+        float duration = GetWaveAdvanceSeconds(clearEffects);
+        float elapsed = 0f;
+        while (!cancellationRequested && elapsed < duration)
+        {
+            elapsed += Time.deltaTime;
+            yield return null;
+        }
     }
 
     /// <summary>진행 중 연출을 중단하고 다음 프레임에 모든 결과 상태를 즉시 반영하도록 요청한다.</summary>

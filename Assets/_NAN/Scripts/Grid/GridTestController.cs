@@ -177,6 +177,7 @@ public sealed class GridTestController : MonoBehaviour
             paintSequenceCoroutine = StartCoroutine(
                 sequencePlayer.Play(
                     activePlan,
+                    bucket.PaintType,
                     HandlePaintSequenceCompleted));
         }
     }
