@@ -20,3 +20,10 @@ MonoBehaviour:
   cyanColor: {r: 0.3372549, g: 0.7058824, b: 0.9137255, a: 1}
   magentaColor: {r: 0.8, g: 0.4745098, b: 0.654902, a: 1}
   whiteColor: {r: 1, g: 1, b: 1, a: 1}
+  redVisualSet: {fileID: 11400000, guid: fe0f1c3dfcc7cecc086c321a0593da23, type: 2}
+  greenVisualSet: {fileID: 11400000, guid: d79708d947927a20808c2c162d84b307, type: 2}
+  blueVisualSet: {fileID: 11400000, guid: 8ab32ce6ab52648d1363466de7631f32, type: 2}
+  yellowVisualSet: {fileID: 11400000, guid: 50f87bd2fae0ce7194ea0bb9d44577d6, type: 2}
+  cyanVisualSet: {fileID: 11400000, guid: 1819535d1ead84ec57b54dbaa61c4443, type: 2}
+  magentaVisualSet: {fileID: 11400000, guid: 351525b57316e6e4b009fb22fb69302b, type: 2}
+  whiteVisualSet: {fileID: 11400000, guid: 344b0c1b03ed2e0670959d9ca6c3f015, type: 2}

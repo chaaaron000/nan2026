@@ -10,15 +10,20 @@ public sealed class PaintSpreadSequencePlayer : IDisposable
 {
     private readonly GridView gridView;
     private readonly PaintEffectLibrary effectLibrary;
+    private readonly Func<ColorPaletteSO> paletteProvider;
     private readonly PaintEffectPool effectPool;
     private readonly List<GameObject> activeEffects = new();
     private bool cancellationRequested;
 
     /// <summary>재생 대상 GridView와 이펙트 설정을 연결한다.</summary>
-    public PaintSpreadSequencePlayer(GridView gridView, PaintEffectLibrary effectLibrary)
+    public PaintSpreadSequencePlayer(
+        GridView gridView,
+        PaintEffectLibrary effectLibrary,
+        Func<ColorPaletteSO> paletteProvider)
     {
         this.gridView = gridView ?? throw new ArgumentNullException(nameof(gridView));
         this.effectLibrary = effectLibrary ?? throw new ArgumentNullException(nameof(effectLibrary));
+        this.paletteProvider = paletteProvider ?? throw new ArgumentNullException(nameof(paletteProvider));
         effectPool = new PaintEffectPool(
             gridView.transform,
             effectLibrary.SortingLayer,
@@ -108,21 +113,30 @@ public sealed class PaintSpreadSequencePlayer : IDisposable
 
             if (center)
             {
-                activeEffects.Add(effectPool.Spawn(prefab, position, Quaternion.identity, scale));
+                GameObject effect = effectPool.Spawn(prefab, position, Quaternion.identity, scale);
+                ApplyVisualSet(effect, step.ResultState);
+                activeEffects.Add(effect);
                 continue;
             }
 
-            SpawnEdgeForDirection(prefab, position, scale, step.IncomingDirections, PaintIncomingDirection.FromBelow, 0f);
-            SpawnEdgeForDirection(prefab, position, scale, step.IncomingDirections, PaintIncomingDirection.FromLeft, -90f);
-            SpawnEdgeForDirection(prefab, position, scale, step.IncomingDirections, PaintIncomingDirection.FromAbove, 180f);
-            SpawnEdgeForDirection(prefab, position, scale, step.IncomingDirections, PaintIncomingDirection.FromRight, 90f);
+            SpawnEdgeForDirection(prefab, position, scale, step.ResultState, step.IncomingDirections, PaintIncomingDirection.FromBelow, 0f);
+            SpawnEdgeForDirection(prefab, position, scale, step.ResultState, step.IncomingDirections, PaintIncomingDirection.FromLeft, -90f);
+            SpawnEdgeForDirection(prefab, position, scale, step.ResultState, step.IncomingDirections, PaintIncomingDirection.FromAbove, 180f);
+            SpawnEdgeForDirection(prefab, position, scale, step.ResultState, step.IncomingDirections, PaintIncomingDirection.FromRight, 90f);
         }
+    }
+
+    private void ApplyVisualSet(GameObject effect, PaintState paintState)
+    {
+        ColorPaletteSO palette = paletteProvider();
+        effectLibrary.ApplyVisualSet(effect, palette?.GetVisualSet(paintState));
     }
 
     private void SpawnEdgeForDirection(
         GameObject prefab,
         Vector3 position,
         float scale,
+        PaintState paintState,
         PaintIncomingDirection directions,
         PaintIncomingDirection requiredDirection,
         float zRotation)
@@ -132,11 +146,13 @@ public sealed class PaintSpreadSequencePlayer : IDisposable
             return;
         }
 
-        activeEffects.Add(effectPool.Spawn(
+        GameObject effect = effectPool.Spawn(
             prefab,
             position,
             Quaternion.Euler(0f, 0f, zRotation),
-            scale));
+            scale);
+        ApplyVisualSet(effect, paintState);
+        activeEffects.Add(effect);
     }
 
     private float GetWaveAdvanceSeconds()

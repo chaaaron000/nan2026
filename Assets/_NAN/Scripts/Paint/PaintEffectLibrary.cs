@@ -62,4 +62,45 @@ public sealed class PaintEffectLibrary
             _ => throw new ArgumentOutOfRangeException(nameof(paintState), paintState, "Unsupported paint state."),
         };
     }
+
+    /// <summary>
+    /// 생성된 이펙트 인스턴스의 역할별 Renderer에 VisualSet Material을 적용한다.
+    /// </summary>
+    /// <param name="effectInstance">Material을 교체할 이펙트 인스턴스.</param>
+    /// <param name="visualSet">현재 페인트 상태의 시각 리소스 묶음.</param>
+    public void ApplyVisualSet(GameObject effectInstance, PaintVisualSet visualSet)
+    {
+        if (effectInstance == null || visualSet == null)
+        {
+            return;
+        }
+
+        foreach (Renderer renderer in effectInstance.GetComponentsInChildren<Renderer>(true))
+        {
+            PaintEffectMaterialType? materialType = GetMaterialType(renderer.gameObject.name);
+            if (!materialType.HasValue)
+            {
+                continue;
+            }
+
+            Material material = visualSet.GetEffectMaterial(materialType.Value);
+            if (material != null)
+            {
+                renderer.sharedMaterial = material;
+            }
+        }
+    }
+
+    private static PaintEffectMaterialType? GetMaterialType(string objectName)
+    {
+        return objectName switch
+        {
+            "paint" => PaintEffectMaterialType.Center,
+            "Particle System (1)" => PaintEffectMaterialType.Edge,
+            "bubble" => PaintEffectMaterialType.Bubble,
+            "glow" => PaintEffectMaterialType.Glow,
+            "glowSub" => PaintEffectMaterialType.GlowSub,
+            _ => null,
+        };
+    }
 }

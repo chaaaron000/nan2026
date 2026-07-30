@@ -34,6 +34,52 @@ public sealed class ColorPaletteSO : ScriptableObject
     [SerializeField]
     private Color whiteColor = Color.white;
 
+    [Header("Paint Visual Set")]
+    [SerializeField]
+    private PaintVisualSet redVisualSet;
+
+    [SerializeField]
+    private PaintVisualSet greenVisualSet;
+
+    [SerializeField]
+    private PaintVisualSet blueVisualSet;
+
+    [SerializeField]
+    private PaintVisualSet yellowVisualSet;
+
+    [SerializeField]
+    private PaintVisualSet cyanVisualSet;
+
+    [SerializeField]
+    private PaintVisualSet magentaVisualSet;
+
+    [SerializeField]
+    private PaintVisualSet whiteVisualSet;
+
+    /// <summary>
+    /// 지정한 PaintState에 대응하는 시각 리소스 묶음을 반환한다.
+    /// </summary>
+    /// <param name="paintState">조회할 페인트 상태.</param>
+    /// <returns>상태에 대응하는 VisualSet. Empty는 null이다.</returns>
+    public PaintVisualSet GetVisualSet(PaintState paintState)
+    {
+        return paintState switch
+        {
+            PaintState.Red => redVisualSet,
+            PaintState.Green => greenVisualSet,
+            PaintState.Blue => blueVisualSet,
+            PaintState.Yellow => yellowVisualSet,
+            PaintState.Cyan => cyanVisualSet,
+            PaintState.Magenta => magentaVisualSet,
+            PaintState.White => whiteVisualSet,
+            PaintState.Empty => null,
+            _ => throw new ArgumentOutOfRangeException(
+                nameof(paintState),
+                paintState,
+                "Unsupported paint state."),
+        };
+    }
+
     /// <summary>
     /// 지정한 셀 물감 상태에 대응하는 표시 색상을 반환한다.
     /// </summary>

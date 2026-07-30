@@ -44,7 +44,11 @@ namespace Nan.UI
         public void RefreshVisual(AccessibilityDisplaySettings settings)
         {
             ColorPaletteSO palette = settings.ActivePalette;
-            backgroundImage.color = palette.GetColor(paintState);
+        Material targetMaterial = palette.GetVisualSet(paintState)?.CellMaterial;
+        backgroundImage.material = targetMaterial;
+        backgroundImage.color = targetMaterial == null
+            ? palette.GetColor(paintState)
+            : Color.white;
 
             bool shouldShowSymbol = settings.SymbolsEnabled && paintState != PaintState.Empty;
             symbolText.gameObject.SetActive(shouldShowSymbol);

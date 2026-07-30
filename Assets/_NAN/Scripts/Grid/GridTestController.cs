@@ -70,7 +70,8 @@ public sealed class GridTestController : MonoBehaviour
 
         sequencePlayer = new PaintSpreadSequencePlayer(
             gridView,
-            paintEffectLibrary);
+            paintEffectLibrary,
+            () => gridView.ActivePalette);
 
         CreateTestGrid();
     }

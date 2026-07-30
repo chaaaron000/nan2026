@@ -1,0 +1,19 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 60d84218684dc2b4989d74701d05b6dd, type: 3}
+  m_Name: DefaultCyanVisualSet
+  m_EditorClassIdentifier: Assembly-CSharp::PaintVisualSet
+  cellMaterial: {fileID: 2100000, guid: d84582d9bbdd4eb47ab9171c4c869822, type: 2}
+  centerMaterial: {fileID: 2100000, guid: 6e3921965b9e3c144bc0d41ce17039f2, type: 2}
+  edgeMaterial: {fileID: 2100000, guid: 3257d99e796313d4487fa6fca468a554, type: 2}
+  bubbleMaterial: {fileID: 2100000, guid: 64f49718b2d00a94ca5406dc4873dc01, type: 2}
+  glowMaterial: {fileID: 2100000, guid: 1f4d8978a929afd4381e52f80116cce8, type: 2}
+  glowSubMaterial: {fileID: 2100000, guid: f90b02a9cf809d24ea6eb231d74efabf, type: 2}

@@ -87,6 +87,11 @@ public sealed class GridView : MonoBehaviour
     /// <summary>현재 생성되는 셀 한 변의 월드 크기를 반환한다.</summary>
     public float CellSize => cellSize;
 
+    /// <summary>
+    /// 현재 격자에 적용 중인 색상 팔레트를 반환한다.
+    /// </summary>
+    public ColorPaletteSO ActivePalette => accessibilityDisplaySettings?.ActivePalette;
+
     /// <summary>논리 셀 좌표를 GridView 기준 로컬 위치로 변환한다.</summary>
     public Vector3 GetCellLocalPosition(Vector2Int gridPosition)
     {

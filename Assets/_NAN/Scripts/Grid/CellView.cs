@@ -22,30 +22,6 @@ public sealed class CellView : MonoBehaviour, IPointerClickHandler
     private TMP_Text symbolText;
 
     [Header("아트 머티리얼")]
-    [SerializeField]
-    private Material emptyMaterial;
-
-    [SerializeField]
-    private Material redMaterial;
-
-    [SerializeField]
-    private Material greenMaterial;
-
-    [SerializeField]
-    private Material blueMaterial;
-
-    [SerializeField]
-    private Material yellowMaterial;
-
-    [SerializeField]
-    private Material cyanMaterial;
-
-    [SerializeField]
-    private Material magentaMaterial;
-
-    [SerializeField]
-    private Material whiteMaterial;
-
     // 셀의 물감 상태를 칠할 스프라이트 렌더러.
     private SpriteRenderer spriteRenderer;
 
@@ -149,7 +125,8 @@ public sealed class CellView : MonoBehaviour, IPointerClickHandler
         }
 
         ColorPaletteSO palette = displaySettings.ActivePalette;
-        Material targetMaterial = GetMaterial(currentPaintState);
+        PaintVisualSet visualSet = palette.GetVisualSet(currentPaintState);
+        Material targetMaterial = visualSet?.CellMaterial;
 
         // 빈 셀은 배경 격자가 담당하므로 셀 SpriteRenderer를 숨긴다.
         // 칠해진 셀만 아트 머티리얼을 가진 SpriteRenderer를 표시한다.
@@ -217,19 +194,4 @@ public sealed class CellView : MonoBehaviour, IPointerClickHandler
         RefreshVisual();
     }
 
-    private Material GetMaterial(PaintState paintState)
-    {
-        return paintState switch
-        {
-            PaintState.Empty => emptyMaterial,
-            PaintState.Red => redMaterial,
-            PaintState.Green => greenMaterial,
-            PaintState.Blue => blueMaterial,
-            PaintState.Yellow => yellowMaterial,
-            PaintState.Cyan => cyanMaterial,
-            PaintState.Magenta => magentaMaterial,
-            PaintState.White => whiteMaterial,
-            _ => null,
-        };
-    }
 }
