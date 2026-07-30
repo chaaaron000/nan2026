@@ -27,7 +27,8 @@ public sealed class PaintSpreadSequencePlayer : IDisposable
         effectPool = new PaintEffectPool(
             gridView.transform,
             effectLibrary.SortingLayer,
-            effectLibrary.PlaybackSpeed);
+            effectLibrary.PlaybackSpeed,
+            RecycleCompletedEffect);
     }
 
     /// <summary>
@@ -49,14 +50,15 @@ public sealed class PaintSpreadSequencePlayer : IDisposable
                 break;
             }
 
-            SpawnWaveEffects(wave);
+            List<GameObject> waveEffects = new();
+            SpawnWaveEffects(wave, waveEffects);
 
-            if (activeEffects.Count > 0)
+            if (waveEffects.Count > 0)
             {
                 // 프리팹의 시스템 duration은 5초지만 실제 채움 파티클은 1.5초에 끝난다.
                 // 보이지 않는 시스템 잔여 시간 때문에 다음 wave가 늦어지지 않도록
                 // 지연 없이 시작하는 핵심 채움 파티클의 수명을 진행 기준으로 사용한다.
-                float waveAdvanceSeconds = GetWaveAdvanceSeconds();
+                float waveAdvanceSeconds = GetWaveAdvanceSeconds(waveEffects);
                 float elapsed = 0f;
                 while (!cancellationRequested
                        && elapsed < waveAdvanceSeconds)
@@ -65,8 +67,6 @@ public sealed class PaintSpreadSequencePlayer : IDisposable
                     yield return null;
                 }
             }
-
-            RecycleActiveEffects();
 
             if (!cancellationRequested)
             {
@@ -96,7 +96,7 @@ public sealed class PaintSpreadSequencePlayer : IDisposable
         effectPool.Dispose();
     }
 
-    private void SpawnWaveEffects(PaintSpreadWave wave)
+    private void SpawnWaveEffects(PaintSpreadWave wave, List<GameObject> waveEffects)
     {
         bool center = wave.Distance == 0;
         float scale = gridView.CellSize / effectLibrary.ReferenceCellSize;
@@ -116,13 +116,14 @@ public sealed class PaintSpreadSequencePlayer : IDisposable
                 GameObject effect = effectPool.Spawn(prefab, position, Quaternion.identity, scale);
                 ApplyVisualSet(effect, step.ResultState);
                 activeEffects.Add(effect);
+                waveEffects.Add(effect);
                 continue;
             }
 
-            SpawnEdgeForDirection(prefab, position, scale, step.ResultState, step.IncomingDirections, PaintIncomingDirection.FromBelow, 0f);
-            SpawnEdgeForDirection(prefab, position, scale, step.ResultState, step.IncomingDirections, PaintIncomingDirection.FromLeft, -90f);
-            SpawnEdgeForDirection(prefab, position, scale, step.ResultState, step.IncomingDirections, PaintIncomingDirection.FromAbove, 180f);
-            SpawnEdgeForDirection(prefab, position, scale, step.ResultState, step.IncomingDirections, PaintIncomingDirection.FromRight, 90f);
+            SpawnEdgeForDirection(prefab, position, scale, step.ResultState, step.IncomingDirections, PaintIncomingDirection.FromBelow, 0f, waveEffects);
+            SpawnEdgeForDirection(prefab, position, scale, step.ResultState, step.IncomingDirections, PaintIncomingDirection.FromLeft, -90f, waveEffects);
+            SpawnEdgeForDirection(prefab, position, scale, step.ResultState, step.IncomingDirections, PaintIncomingDirection.FromAbove, 180f, waveEffects);
+            SpawnEdgeForDirection(prefab, position, scale, step.ResultState, step.IncomingDirections, PaintIncomingDirection.FromRight, 90f, waveEffects);
         }
     }
 
@@ -139,7 +140,8 @@ public sealed class PaintSpreadSequencePlayer : IDisposable
         PaintState paintState,
         PaintIncomingDirection directions,
         PaintIncomingDirection requiredDirection,
-        float zRotation)
+        float zRotation,
+        List<GameObject> waveEffects)
     {
         if ((directions & requiredDirection) == 0)
         {
@@ -153,13 +155,14 @@ public sealed class PaintSpreadSequencePlayer : IDisposable
             scale);
         ApplyVisualSet(effect, paintState);
         activeEffects.Add(effect);
+        waveEffects.Add(effect);
     }
 
-    private float GetWaveAdvanceSeconds()
+    private float GetWaveAdvanceSeconds(List<GameObject> waveEffects)
     {
         float longestImmediateLifetime = 0f;
 
-        foreach (GameObject effect in activeEffects)
+        foreach (GameObject effect in waveEffects)
         {
             if (effect == null)
             {
@@ -209,11 +212,18 @@ public sealed class PaintSpreadSequencePlayer : IDisposable
         activeEffects.Clear();
     }
 
+    private void RecycleCompletedEffect(GameObject effect)
+    {
+        activeEffects.Remove(effect);
+        effectPool.Recycle(effect);
+    }
+
     private sealed class PaintEffectPool : IDisposable
     {
         private readonly Transform parent;
         private readonly string sortingLayer;
         private readonly float playbackSpeed;
+        private readonly Action<GameObject> completedRecycle;
         private readonly Dictionary<GameObject, Stack<GameObject>> inactiveByPrefab = new();
         private readonly Dictionary<GameObject, GameObject> prefabByInstance = new();
         private readonly Dictionary<GameObject, ParticleSystem.MinMaxCurve[]> originalRotationsByInstance = new();
@@ -221,11 +231,13 @@ public sealed class PaintSpreadSequencePlayer : IDisposable
         public PaintEffectPool(
             Transform parent,
             string sortingLayer,
-            float playbackSpeed)
+            float playbackSpeed,
+            Action<GameObject> completedRecycle)
         {
             this.parent = parent;
             this.sortingLayer = sortingLayer;
             this.playbackSpeed = playbackSpeed;
+            this.completedRecycle = completedRecycle;
         }
 
         public GameObject Spawn(
@@ -293,6 +305,15 @@ public sealed class PaintSpreadSequencePlayer : IDisposable
                 system.Play(false);
             }
 
+            PaintEffectAutoRecycler autoRecycler =
+                instance.GetComponent<PaintEffectAutoRecycler>();
+            if (autoRecycler == null)
+            {
+                autoRecycler = instance.AddComponent<PaintEffectAutoRecycler>();
+            }
+
+            autoRecycler.Begin(completedRecycle);
+
             return instance;
         }
 
@@ -322,6 +343,8 @@ public sealed class PaintSpreadSequencePlayer : IDisposable
             {
                 return;
             }
+
+            instance.GetComponent<PaintEffectAutoRecycler>()?.Cancel();
 
             ParticleSystem[] systems = instance.GetComponentsInChildren<ParticleSystem>(true);
             foreach (ParticleSystem system in systems)
