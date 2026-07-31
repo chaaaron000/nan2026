@@ -16,3 +16,35 @@ MonoBehaviour:
   greenSprite: {fileID: 4487218048701029082, guid: b7b87c8e56ec6294bb67cd0294916b44, type: 3}
   blueSprite: {fileID: -3235116122893632291, guid: f24cc87fc3963a348963c4f8a3a9128a, type: 3}
   clearSprite: {fileID: -6920725761160975580, guid: bc6d5b0adba905e41809a643b5b7da8d, type: 3}
+  redPrefab: {fileID: 947636285499833164, guid: 44dc12f9739a3cb45853b8eb03440279, type: 3}
+  greenPrefab: {fileID: 947636285499833164, guid: dcd938fb34d230840b0567fcd0531350, type: 3}
+  bluePrefab: {fileID: 947636285499833164, guid: e0a7843a8ce0bde48a0b4e4bbab2f477, type: 3}
+  clearPrefab: {fileID: 947636285499833164, guid: d82baee4b3c7f8546a15cbced089ce7e, type: 3}
+  bucketPaintMaterials:
+  - paintType: 0
+    paletteColor: {r: 1, g: 0, b: 0, a: 1}
+    material: {fileID: 2100000, guid: 2ee26133b3b4b3c46ad3119e0f878b5d, type: 2}
+  - paintType: 1
+    paletteColor: {r: 0, g: 1, b: 0, a: 1}
+    material: {fileID: 2100000, guid: a15b6178bffc96a40ac3f9979a19dc76, type: 2}
+  - paintType: 2
+    paletteColor: {r: 0, g: 0, b: 1, a: 1}
+    material: {fileID: 2100000, guid: d2c019055fcfc9f4686509bdce20fdd0, type: 2}
+  - paintType: 0
+    paletteColor: {r: 0.8352941, g: 0.36862746, b: 0, a: 1}
+    material: {fileID: 2100000, guid: 58d8baad10d74a1fb3af58f1466d4e11, type: 2}
+  - paintType: 1
+    paletteColor: {r: 0, g: 0.61960787, b: 0.4509804, a: 1}
+    material: {fileID: 2100000, guid: 6e756186e3fd4ebaa63437aa5ea95eed, type: 2}
+  - paintType: 2
+    paletteColor: {r: 0, g: 0.44705883, b: 0.69803923, a: 1}
+    material: {fileID: 2100000, guid: 7a89d73a37c2426885c799594710af73, type: 2}
+  - paintType: 0
+    paletteColor: {r: 0.69803923, g: 0.09411765, b: 0.16862746, a: 1}
+    material: {fileID: 2100000, guid: 8fa3cf2131564057905c3a2f3a332d2a, type: 2}
+  - paintType: 1
+    paletteColor: {r: 0.105882354, g: 0.47058824, b: 0.21568628, a: 1}
+    material: {fileID: 2100000, guid: 9d289f6196394ae5a864fcbd5d2f0b8f, type: 2}
+  - paintType: 2
+    paletteColor: {r: 0.9372549, g: 0.5411765, b: 0.38431373, a: 1}
+    material: {fileID: 2100000, guid: a4ad95ed378e4d6a9e4de14981944533, type: 2}

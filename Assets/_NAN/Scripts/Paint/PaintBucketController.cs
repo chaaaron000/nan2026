@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.EventSystems;
 
 /// <summary>
 /// 인게임 물감통의 선택, 소모, 복원 및
@@ -53,6 +54,8 @@ public sealed class PaintBucketController
     private readonly Dictionary<
         PaintBucketView,
         BucketEntry> entryByView = new();
+
+    private readonly List<RaycastResult> raycastResults = new();
 
     // 현재 플레이어가 선택한 물감통
     private BucketEntry selectedBucket;
@@ -112,6 +115,8 @@ public sealed class PaintBucketController
             
             bucketView.Clicked +=
                 HandleBucketClicked;
+            bucketView.Dropped +=
+                HandleBucketDropped;
         }
 
         //중복 구독 방어용 
@@ -134,6 +139,8 @@ public sealed class PaintBucketController
 
             entry.View.Clicked -=
                 HandleBucketClicked;
+            entry.View.Dropped -=
+                HandleBucketDropped;
 
             Destroy(entry.View.gameObject);
         }
@@ -261,6 +268,86 @@ public sealed class PaintBucketController
             selectedBucket.Id,
             selectedBucket.Data,
             gridPosition);
+    }
+
+    /// <summary>
+    /// 물감통을 셀 위에 드롭했을 때 해당 셀에 물감통 사용을 요청한다.
+    /// </summary>
+    /// <param name="droppedView">드롭된 물감통 View.</param>
+    /// <param name="eventData">드롭 위치를 담고 있는 포인터 이벤트 데이터.</param>
+    private void HandleBucketDropped(
+        PaintBucketView droppedView,
+        PointerEventData eventData)
+    {
+        if (!isActiveAndEnabled || !inputEnabled)
+        {
+            return;
+        }
+
+        if (!entryByView.TryGetValue(
+                droppedView,
+                out BucketEntry droppedEntry))
+        {
+            return;
+        }
+
+        if (droppedEntry.IsConsumed)
+        {
+            return;
+        }
+
+        // 셀 바깥에 드롭한 경우에는 사용 요청을 보내지 않는다.
+        // View가 이미 원래 슬롯 위치로 되돌아가므로 별도 복구 처리는 필요 없다.
+        if (!TryGetDroppedCell(eventData, out CellView droppedCell))
+        {
+            return;
+        }
+
+        BucketUseRequested?.Invoke(
+            droppedEntry.Id,
+            droppedEntry.Data,
+            droppedCell.GridPosition);
+    }
+
+    private bool TryGetDroppedCell(
+        PointerEventData eventData,
+        out CellView cellView)
+    {
+        cellView = null;
+
+        if (eventData == null || EventSystem.current == null)
+        {
+            return false;
+        }
+
+        raycastResults.Clear();
+        EventSystem.current.RaycastAll(eventData, raycastResults);
+
+        foreach (RaycastResult result in raycastResults)
+        {
+            if (result.gameObject == null)
+            {
+                continue;
+            }
+
+            CellView hitCell =
+                result.gameObject.GetComponentInParent<CellView>();
+
+            if (hitCell == null)
+            {
+                continue;
+            }
+
+            if (gridView == null || !hitCell.transform.IsChildOf(gridView.transform))
+            {
+                continue;
+            }
+
+            cellView = hitCell;
+            return true;
+        }
+
+        return false;
     }
 
     /// <summary>

@@ -1,12 +1,14 @@
 using System;
+using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
 /// <summary>
 /// 생성된 물감통 한 개의 시각적 표현과 클릭 입력을 담당한다.
 /// </summary>
-public sealed class PaintBucketView : MonoBehaviour
+public sealed class PaintBucketView : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHandler
 {
     [SerializeField]
     private Button button;
@@ -20,8 +22,59 @@ public sealed class PaintBucketView : MonoBehaviour
     [SerializeField]
     private TMP_Text symbolText;
 
+    [Header("World Visual")]
+    [SerializeField]
+    [Min(0.1f)]
+    private float visualWorldHeight = 1.15f;
+
+    [SerializeField]
+    private float visualWorldZ;
+
+    [SerializeField]
+    [Range(0.1f, 1f)]
+    private float draggingAlpha = 0.6f;
+
+    [SerializeField]
+    private string visualSortingLayer = "GridWall";
+
+    [SerializeField]
+    private int visualSortingOrder = 10000;
+
+    [SerializeField]
+    private int draggingSortingOrderBonus = 1000;
+
+    [SerializeField]
+    private Vector2 textSize = new(42f, 40f);
+
+    [SerializeField]
+    private Color textOutlineColor = Color.black;
+
+    [SerializeField]
+    [Range(0f, 1f)]
+    private float textOutlineWidth = 0.22f;
+
+    private readonly List<SpriteRenderer> visualSpriteRenderers = new();
+    private readonly List<Renderer> visualRenderers = new();
+    private readonly List<int> visualOriginalSortingOrders = new();
+    private static readonly Vector2 RangeOnlyTextOffset = Vector2.zero;
+    private static readonly Vector2 SymbolModeRangeTextOffset = new(15f, 0f);
+    private static readonly Vector2 SymbolTextOffset = new(-15f, 0f);
+    private static readonly Vector2 InteractionSize = new(126f, 96f);
+    private CanvasGroup canvasGroup;
+    private RectTransform rectTransform;
+    private Canvas rootCanvas;
+    private LayoutElement layoutElement;
+    private Camera worldCamera;
+    private GameObject visualInstance;
+    private Vector2 originalAnchoredPosition;
+    private bool originalIgnoreLayout;
+    private bool wasRangeTextActiveBeforeDrag;
+    private bool wasSymbolTextActiveBeforeDrag;
+    private bool isDragging;
+    private bool isConsumed;
     private PaintType paintType;
     private AccessibilityDisplaySettings displaySettings;
+    private PaintBucketVisualData visualData;
     private bool isDisplaySettingsSubscribed;
 
     /// <summary>
@@ -29,20 +82,48 @@ public sealed class PaintBucketView : MonoBehaviour
     /// </summary>
     public event Action<PaintBucketView> Clicked;
 
+    /// <summary>
+    /// 플레이어가 물감통을 드롭했을 때 드롭 위치와 함께 발생한다.
+    /// </summary>
+    public event Action<PaintBucketView, PointerEventData> Dropped;
+
     private void Awake()
     {
+        rectTransform = transform as RectTransform;
+        rootCanvas = GetComponentInParent<Canvas>();
+        layoutElement = GetComponent<LayoutElement>();
+        canvasGroup = GetComponent<CanvasGroup>();
+
+        if (canvasGroup == null)
+        {
+            canvasGroup = gameObject.AddComponent<CanvasGroup>();
+        }
+
         button.onClick.AddListener(HandleButtonClicked);
+        ConfigureInteractionArea();
     }
 
     private void OnEnable()
     {
+        if (visualInstance != null)
+        {
+            visualInstance.SetActive(!isConsumed);
+        }
+
         SubscribeDisplaySettings();
         RefreshSymbol();
+        ConfigureInteractionArea();
+        SyncVisualToSlot();
     }
 
     private void OnDisable()
     {
         UnsubscribeDisplaySettings();
+
+        if (visualInstance != null)
+        {
+            visualInstance.SetActive(false);
+        }
     }
 
     /// <summary>
@@ -68,6 +149,80 @@ public sealed class PaintBucketView : MonoBehaviour
     }
 
     /// <summary>
+    /// 물감통 UI 슬롯 위에 표시할 월드 프리팹을 생성하고 동일한 크기로 맞춘다.
+    /// </summary>
+    /// <param name="visualPrefab">표시할 색상별 물감통 프리팹.</param>
+    /// <param name="visualParent">생성된 월드 물감통 오브젝트를 묶어둘 부모 Transform.</param>
+    public void SetVisualPrefab(
+        GameObject visualPrefab,
+        Transform visualParent)
+    {
+        if (visualInstance != null)
+        {
+            Destroy(visualInstance);
+            visualInstance = null;
+        }
+
+        visualSpriteRenderers.Clear();
+
+        if (visualPrefab == null)
+        {
+            bucketImage.enabled = true;
+            return;
+        }
+
+        bucketImage.enabled = true;
+        bucketImage.color = new Color(1f, 1f, 1f, 0f);
+
+        visualInstance = visualParent == null
+            ? Instantiate(visualPrefab)
+            : Instantiate(visualPrefab, visualParent);
+        visualInstance.name = $"{visualPrefab.name} View";
+        visualSpriteRenderers.AddRange(visualInstance.GetComponentsInChildren<SpriteRenderer>(true));
+        CacheVisualRenderers();
+
+        ApplyVisualSorting(false);
+        ApplyBucketMaterials();
+        FitVisualToTargetHeight();
+        PlayLoopParticles();
+        SetVisualAlpha(1f);
+        SyncVisualToSlot();
+    }
+
+    /// <summary>
+    /// 팔레트별 물감통 전용 Material을 조회할 시각 데이터 원본을 지정한다.
+    /// </summary>
+    /// <param name="newVisualData">물감통 시각 데이터.</param>
+    public void SetVisualData(PaintBucketVisualData newVisualData)
+    {
+        visualData = newVisualData;
+        ApplyBucketMaterials();
+    }
+
+    private void ConfigureInteractionArea()
+    {
+        if (rectTransform != null)
+        {
+            rectTransform.SetSizeWithCurrentAnchors(
+                RectTransform.Axis.Horizontal,
+                InteractionSize.x);
+            rectTransform.SetSizeWithCurrentAnchors(
+                RectTransform.Axis.Vertical,
+                InteractionSize.y);
+        }
+
+        if (layoutElement == null)
+        {
+            return;
+        }
+
+        layoutElement.minWidth = InteractionSize.x;
+        layoutElement.minHeight = InteractionSize.y;
+        layoutElement.preferredWidth = InteractionSize.x;
+        layoutElement.preferredHeight = InteractionSize.y;
+    }
+
+    /// <summary>
     /// 물감통이 사용할 접근성 표시 설정을 지정하고 현재 심볼 표시를 갱신한다.
     /// </summary>
     /// <param name="settings">물감통 표시에 사용할 접근성 표시 설정.</param>
@@ -88,6 +243,7 @@ public sealed class PaintBucketView : MonoBehaviour
         displaySettings = settings;
         SubscribeDisplaySettings();
         RefreshSymbol();
+        ApplyBucketMaterials();
     }
 
     /// <summary>
@@ -104,6 +260,7 @@ public sealed class PaintBucketView : MonoBehaviour
     /// <param name="consumed">true면 물감통을 숨기고 선택할 수 없게 한다.</param>
     public void SetConsumed(bool consumed)
     {
+        isConsumed = consumed;
         button.interactable = !consumed;
 
         if (consumed)
@@ -112,6 +269,88 @@ public sealed class PaintBucketView : MonoBehaviour
         }
 
         gameObject.SetActive(!consumed);
+
+        if (visualInstance != null)
+        {
+            visualInstance.SetActive(!consumed);
+        }
+    }
+
+    /// <summary>
+    /// 물감통 드래그 시작 시 표시 오브젝트를 반투명하게 만들고 raycast 차단을 해제한다.
+    /// </summary>
+    /// <param name="eventData">드래그 시작 포인터 이벤트 데이터.</param>
+    public void OnBeginDrag(PointerEventData eventData)
+    {
+        if (!button.interactable || isConsumed)
+        {
+            return;
+        }
+
+        isDragging = true;
+        originalAnchoredPosition = rectTransform.anchoredPosition;
+        originalIgnoreLayout = layoutElement != null && layoutElement.ignoreLayout;
+
+        if (layoutElement != null)
+        {
+            layoutElement.ignoreLayout = true;
+        }
+
+        SetDraggingTextVisible(false);
+        canvasGroup.blocksRaycasts = false;
+        ApplyVisualSorting(true);
+        SetVisualAlpha(draggingAlpha);
+        SyncVisualToPointer(eventData);
+    }
+
+    /// <summary>
+    /// 드래그 중 물감통 표시 오브젝트를 포인터 위치로 이동한다.
+    /// </summary>
+    /// <param name="eventData">현재 포인터 이벤트 데이터.</param>
+    public void OnDrag(PointerEventData eventData)
+    {
+        if (!isDragging)
+        {
+            return;
+        }
+
+        SyncVisualToPointer(eventData);
+        SyncSlotByPointerDelta(eventData);
+    }
+
+    /// <summary>
+    /// 드래그 종료 시 드롭 이벤트를 전달하고 물감통 표시 상태를 원래 슬롯 위치로 되돌린다.
+    /// </summary>
+    /// <param name="eventData">드롭 위치가 포함된 포인터 이벤트 데이터.</param>
+    public void OnEndDrag(PointerEventData eventData)
+    {
+        if (!isDragging)
+        {
+            return;
+        }
+
+        isDragging = false;
+        canvasGroup.blocksRaycasts = true;
+        ApplyVisualSorting(false);
+        SetVisualAlpha(1f);
+        Dropped?.Invoke(this, eventData);
+        rectTransform.anchoredPosition = originalAnchoredPosition;
+        SetDraggingTextVisible(true);
+
+        if (layoutElement != null)
+        {
+            layoutElement.ignoreLayout = originalIgnoreLayout;
+        }
+
+        SyncVisualToSlot();
+    }
+
+    private void LateUpdate()
+    {
+        if (!isDragging)
+        {
+            SyncVisualToSlot();
+        }
     }
 
     private void HandleButtonClicked()
@@ -127,7 +366,10 @@ public sealed class PaintBucketView : MonoBehaviour
         }
 
         bool shouldShowSymbol = displaySettings.SymbolsEnabled;
+        Color textColor = GetBucketTextColor();
         symbolText.gameObject.SetActive(shouldShowSymbol);
+        ApplyTextAnchors(shouldShowSymbol);
+        ApplyTextStyle(rangeText, textColor);
 
         if (!shouldShowSymbol || displaySettings.ActivePalette == null)
         {
@@ -139,9 +381,323 @@ public sealed class PaintBucketView : MonoBehaviour
             : paintType.ToString()[0].ToString();
 
         // Clear 물감통은 현재 흰색 아이콘을 사용하므로, 팔레트의 빈 셀 색 대신 검정 심볼을 사용한다.
-        symbolText.color = paintType == PaintType.Clear
-            ? Color.black
-            : displaySettings.ActivePalette.GetSymbolColor(paintType);
+        ApplyTextStyle(symbolText, textColor);
+    }
+
+    private Color GetBucketTextColor()
+    {
+        if (paintType == PaintType.Clear)
+        {
+            return Color.black;
+        }
+
+        return displaySettings?.ActivePalette != null
+            ? displaySettings.ActivePalette.GetSymbolColor(paintType)
+            : Color.white;
+    }
+
+    private void ApplyTextAnchors(bool symbolEnabled)
+    {
+        ApplyTextLayout(rangeText, symbolEnabled ? SymbolModeRangeTextOffset : RangeOnlyTextOffset);
+        ApplyTextLayout(symbolText, SymbolTextOffset);
+    }
+
+    private void SetDraggingTextVisible(bool visible)
+    {
+        if (rangeText != null)
+        {
+            if (!visible)
+            {
+                wasRangeTextActiveBeforeDrag = rangeText.gameObject.activeSelf;
+                rangeText.gameObject.SetActive(false);
+            }
+            else
+            {
+                rangeText.gameObject.SetActive(wasRangeTextActiveBeforeDrag);
+            }
+        }
+
+        if (symbolText == null)
+        {
+            return;
+        }
+
+        if (!visible)
+        {
+            wasSymbolTextActiveBeforeDrag = symbolText.gameObject.activeSelf;
+            symbolText.gameObject.SetActive(false);
+            return;
+        }
+
+        symbolText.gameObject.SetActive(wasSymbolTextActiveBeforeDrag);
+    }
+
+    private void ApplyTextLayout(TMP_Text text, Vector2 offset)
+    {
+        if (text == null || text.transform is not RectTransform textTransform)
+        {
+            return;
+        }
+
+        textTransform.anchorMin = new Vector2(0.5f, 0.5f);
+        textTransform.anchorMax = new Vector2(0.5f, 0.5f);
+        textTransform.pivot = new Vector2(0.5f, 0.5f);
+        textTransform.anchoredPosition = offset;
+        textTransform.sizeDelta = textSize;
+    }
+
+    private void ApplyTextStyle(TMP_Text text, Color textColor)
+    {
+        if (text == null)
+        {
+            return;
+        }
+
+        text.color = textColor;
+        text.alignment = TextAlignmentOptions.Center;
+        text.enableAutoSizing = true;
+        text.fontSizeMin = 18f;
+        text.fontSizeMax = 32f;
+        text.fontStyle = FontStyles.Bold;
+        text.outlineColor = GetReadableOutlineColor(textColor);
+        text.outlineWidth = textOutlineWidth;
+    }
+
+    private Color GetReadableOutlineColor(Color textColor)
+    {
+        float luminance =
+            (textColor.r * 0.299f)
+            + (textColor.g * 0.587f)
+            + (textColor.b * 0.114f);
+
+        return luminance < 0.35f ? Color.white : textOutlineColor;
+    }
+
+    private void SyncVisualToSlot()
+    {
+        if (visualInstance == null || rectTransform == null || !isActiveAndEnabled)
+        {
+            return;
+        }
+
+        Vector2 screenPoint = RectTransformUtility.WorldToScreenPoint(GetEventCamera(), rectTransform.position);
+        SetVisualScreenPosition(screenPoint);
+    }
+
+    private void SyncVisualToPointer(PointerEventData eventData)
+    {
+        if (visualInstance == null || eventData == null)
+        {
+            return;
+        }
+
+        SetVisualScreenPosition(eventData.position);
+    }
+
+    private void SyncSlotByPointerDelta(PointerEventData eventData)
+    {
+        if (rectTransform == null || eventData == null)
+        {
+            return;
+        }
+
+        float scaleFactor = rootCanvas != null
+            ? Mathf.Max(rootCanvas.scaleFactor, 0.0001f)
+            : 1f;
+        rectTransform.anchoredPosition += eventData.delta / scaleFactor;
+    }
+
+    private void SetVisualScreenPosition(Vector2 screenPoint)
+    {
+        Camera camera = GetWorldCamera();
+
+        if (camera == null)
+        {
+            return;
+        }
+
+        float worldDepth = visualWorldZ - camera.transform.position.z;
+        Vector3 worldPosition = camera.ScreenToWorldPoint(new Vector3(screenPoint.x, screenPoint.y, worldDepth));
+        visualInstance.transform.position = new Vector3(worldPosition.x, worldPosition.y, visualWorldZ);
+    }
+
+    private Camera GetEventCamera()
+    {
+        Canvas canvas = GetComponentInParent<Canvas>();
+
+        if (canvas == null || canvas.renderMode == RenderMode.ScreenSpaceOverlay)
+        {
+            return null;
+        }
+
+        return canvas.worldCamera != null ? canvas.worldCamera : Camera.main;
+    }
+
+    private Camera GetWorldCamera()
+    {
+        if (worldCamera != null)
+        {
+            return worldCamera;
+        }
+
+        Canvas canvas = GetComponentInParent<Canvas>();
+        worldCamera = canvas != null && canvas.worldCamera != null
+            ? canvas.worldCamera
+            : Camera.main;
+
+        return worldCamera;
+    }
+
+    private void CacheVisualRenderers()
+    {
+        visualRenderers.Clear();
+        visualOriginalSortingOrders.Clear();
+
+        foreach (Renderer renderer in visualInstance.GetComponentsInChildren<Renderer>(true))
+        {
+            visualRenderers.Add(renderer);
+            visualOriginalSortingOrders.Add(renderer.sortingOrder);
+        }
+    }
+
+    private void ApplyVisualSorting(bool dragging)
+    {
+        int bonus = dragging ? draggingSortingOrderBonus : 0;
+
+        for (int index = 0; index < visualRenderers.Count; index++)
+        {
+            Renderer renderer = visualRenderers[index];
+            renderer.sortingLayerName = string.IsNullOrWhiteSpace(visualSortingLayer)
+                ? "Default"
+                : visualSortingLayer;
+            renderer.sortingOrder =
+                visualOriginalSortingOrders[index] + visualSortingOrder + bonus;
+        }
+    }
+
+    private void ApplyBucketMaterials()
+    {
+        if (visualInstance == null || displaySettings?.ActivePalette == null)
+        {
+            return;
+        }
+
+        Color bucketPaintColor =
+            displaySettings.ActivePalette.GetColor(paintType);
+        PaintState paintState = PaintSpreadCalculator.ToPaintState(paintType);
+        PaintVisualSet visualSet =
+            displaySettings.ActivePalette.GetVisualSet(paintState);
+
+        foreach (Renderer renderer in visualRenderers)
+        {
+            if (renderer.gameObject.name == "Square")
+            {
+                // Square는 셀 이펙트가 아니라 물감통 전용 셰이더를 쓰므로
+                // 팔레트 색에 맞춰 별도 bucketPaint Material만 교체한다.
+                ApplyBucketPaintMaterial(renderer, bucketPaintColor);
+                continue;
+            }
+
+            PaintEffectMaterialType? materialType =
+                GetBucketMaterialType(renderer.gameObject.name);
+
+            if (!materialType.HasValue)
+            {
+                continue;
+            }
+
+            Material material =
+                visualSet?.GetEffectMaterial(materialType.Value);
+
+            if (material != null)
+            {
+                renderer.sharedMaterial = material;
+            }
+        }
+    }
+
+    private void ApplyBucketPaintMaterial(
+        Renderer renderer,
+        Color bucketPaintColor)
+    {
+        if (visualData == null)
+        {
+            return;
+        }
+
+        Material bucketPaintMaterial =
+            visualData.GetBucketPaintMaterial(paintType, bucketPaintColor);
+
+        if (bucketPaintMaterial != null)
+        {
+            renderer.sharedMaterial = bucketPaintMaterial;
+        }
+    }
+
+    private static PaintEffectMaterialType? GetBucketMaterialType(
+        string objectName)
+    {
+        return objectName switch
+        {
+            "bubble" => PaintEffectMaterialType.Bubble,
+            _ => null,
+        };
+    }
+
+    private void FitVisualToTargetHeight()
+    {
+        Bounds bounds = CalculateVisualBounds();
+
+        if (bounds.size.y <= 0.0001f)
+        {
+            return;
+        }
+
+        float scale = visualWorldHeight / bounds.size.y;
+        visualInstance.transform.localScale *= scale;
+    }
+
+    private Bounds CalculateVisualBounds()
+    {
+        Renderer[] renderers = visualInstance.GetComponentsInChildren<Renderer>(true);
+        Bounds bounds = new(visualInstance.transform.position, Vector3.zero);
+        bool hasBounds = false;
+
+        foreach (Renderer renderer in renderers)
+        {
+            if (!hasBounds)
+            {
+                bounds = renderer.bounds;
+                hasBounds = true;
+                continue;
+            }
+
+            bounds.Encapsulate(renderer.bounds);
+        }
+
+        return bounds;
+    }
+
+    private void PlayLoopParticles()
+    {
+        foreach (ParticleSystem particleSystem in visualInstance.GetComponentsInChildren<ParticleSystem>(true))
+        {
+            ParticleSystem.MainModule mainModule = particleSystem.main;
+            mainModule.loop = true;
+            particleSystem.Play(true);
+        }
+    }
+
+    private void SetVisualAlpha(float alpha)
+    {
+        foreach (SpriteRenderer spriteRenderer in visualSpriteRenderers)
+        {
+            Color color = spriteRenderer.color;
+            color.a = alpha;
+            spriteRenderer.color = color;
+        }
+
+        // 글씨는 드래그 중에도 명확히 읽혀야 하므로 CanvasGroup alpha는 건드리지 않는다.
     }
 
     private void SubscribeDisplaySettings()
@@ -171,6 +727,7 @@ public sealed class PaintBucketView : MonoBehaviour
     private void HandlePaletteChanged(ColorPaletteSO palette)
     {
         RefreshSymbol();
+        ApplyBucketMaterials();
     }
 
     private void HandleSymbolsEnabledChanged(bool enabled)
@@ -185,6 +742,11 @@ public sealed class PaintBucketView : MonoBehaviour
         if (button != null)
         {
             button.onClick.RemoveListener(HandleButtonClicked);
+        }
+
+        if (visualInstance != null)
+        {
+            Destroy(visualInstance);
         }
     }
 }
