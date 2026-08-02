@@ -12,6 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0be045b017354a04862e6c408d47a08e, type: 3}
   m_Name: SoundLibrary
   m_EditorClassIdentifier: 
+  audioMixer: {fileID: 24100000, guid: 01999bc2dc67f4c478ac35b46cd8ab4e, type: 2}
   entries:
   - key: paint_bucket_select
     clip: {fileID: 8300000, guid: 2193fd1e4cb054346bd09746ce6164b1, type: 3}
@@ -23,3 +24,6 @@ MonoBehaviour:
     clip: {fileID: 8300000, guid: 99925079cd37a0345aaddd2b826116ff, type: 3}
   - key: stage_bgm
     clip: {fileID: 8300000, guid: e30b62dfca1e9984087d30a2b39992a6, type: 3}
+  sfxSourceCount: 3
+  defaultBgmVolume: 0.325
+  defaultSfxVolume: 1

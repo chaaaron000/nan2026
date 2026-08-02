@@ -4214,9 +4214,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::SoundManager
   soundLibrary: {fileID: 11400000, guid: 6e24ad6af1a24a5aa3d22aa9d39fa74b, type: 2}
-  sfxSourceCount: 3
-  defaultBgmVolume: 0.325
-  defaultSfxVolume: 1
 --- !u!1 &2112713423
 GameObject:
   m_ObjectHideFlags: 0
