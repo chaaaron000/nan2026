@@ -1,7 +1,9 @@
 using System;
+using System.Collections.Generic;
 using System.Threading;
 using Cysharp.Threading.Tasks;
 using DG.Tweening;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -30,6 +32,26 @@ namespace Nan.UI
         [SerializeField]
         private Button cancelButton;
 
+        [Header("Audio")]
+        [SerializeField]
+        private Slider masterVolumeSlider;
+
+        [SerializeField]
+        private Slider bgmVolumeSlider;
+
+        [SerializeField]
+        private Slider sfxVolumeSlider;
+
+        [Header("Accessibility")]
+        [SerializeField]
+        private TMP_Dropdown colorVisionCorrectionDropdown;
+
+        [SerializeField]
+        private Toggle colorSymbolDisplayToggle;
+
+        [SerializeField]
+        private UIRGBDiagram rgbDiagram;
+
         [Header("Tween")]
         [SerializeField]
         [Range(0f, 1f)]
@@ -52,10 +74,50 @@ namespace Nan.UI
         /// </summary>
         public event Action CancelRequested;
 
+        /// <summary>
+        /// 사용자가 Master 볼륨을 변경할 때 발생합니다.
+        /// </summary>
+        public event Action<float> MasterVolumeChanged;
+
+        /// <summary>
+        /// 사용자가 BGM 볼륨을 변경할 때 발생합니다.
+        /// </summary>
+        public event Action<float> BgmVolumeChanged;
+
+        /// <summary>
+        /// 사용자가 효과음 볼륨을 변경할 때 발생합니다.
+        /// </summary>
+        public event Action<float> SfxVolumeChanged;
+
+        /// <summary>
+        /// 사용자가 색각 보정 종류를 변경할 때 발생합니다.
+        /// </summary>
+        public event Action<ColorVisionCorrection> ColorVisionCorrectionChanged;
+
+        /// <summary>
+        /// 사용자가 색상 심볼 표시 여부를 변경할 때 발생합니다.
+        /// </summary>
+        public event Action<bool> SymbolsEnabledChanged;
+
         private void Awake()
         {
             confirmButton.onClick.AddListener(HandleConfirmButtonClicked);
             cancelButton.onClick.AddListener(HandleCancelButtonClicked);
+            masterVolumeSlider.onValueChanged.AddListener(HandleMasterVolumeChanged);
+            bgmVolumeSlider.onValueChanged.AddListener(HandleBgmVolumeChanged);
+            sfxVolumeSlider.onValueChanged.AddListener(HandleSfxVolumeChanged);
+            colorVisionCorrectionDropdown.onValueChanged.AddListener(HandleColorVisionCorrectionChanged);
+            colorSymbolDisplayToggle.onValueChanged.AddListener(HandleSymbolsEnabledChanged);
+
+            colorVisionCorrectionDropdown.ClearOptions();
+            colorVisionCorrectionDropdown.AddOptions(
+                new List<string>
+                {
+                    "Default",
+                    "Red-Green",
+                    "Blue-Yellow",
+                }
+            );
         }
 
         /// <summary>
@@ -77,6 +139,47 @@ namespace Nan.UI
         }
 
         /// <summary>
+        /// 오디오 슬라이더에 현재 적용된 볼륨을 표시합니다.
+        /// </summary>
+        /// <param name="masterVolume">0부터 1 사이의 Master 볼륨.</param>
+        /// <param name="bgmVolume">0부터 1 사이의 BGM 볼륨.</param>
+        /// <param name="sfxVolume">0부터 1 사이의 효과음 볼륨.</param>
+        public void SetAudioVolumes(float masterVolume, float bgmVolume, float sfxVolume)
+        {
+            masterVolumeSlider.SetValueWithoutNotify(Mathf.Clamp01(masterVolume));
+            bgmVolumeSlider.SetValueWithoutNotify(Mathf.Clamp01(bgmVolume));
+            sfxVolumeSlider.SetValueWithoutNotify(Mathf.Clamp01(sfxVolume));
+        }
+
+        /// <summary>
+        /// 색각 보정 드롭다운에 현재 적용된 종류를 표시한다.
+        /// </summary>
+        /// <param name="correction">표시할 색각 보정 종류.</param>
+        public void SetColorVisionCorrection(ColorVisionCorrection correction)
+        {
+            colorVisionCorrectionDropdown.SetValueWithoutNotify((int)correction);
+            colorVisionCorrectionDropdown.RefreshShownValue();
+        }
+
+        /// <summary>
+        /// 색상 심볼 표시 Toggle에 현재 적용된 상태를 표시한다.
+        /// </summary>
+        /// <param name="enabled">true면 색상 심볼 표시를 켠다.</param>
+        public void SetSymbolsEnabled(bool enabled)
+        {
+            colorSymbolDisplayToggle.SetIsOnWithoutNotify(enabled);
+        }
+
+        /// <summary>
+        /// RGB 다이어그램이 현재 접근성 표시 설정을 구독하도록 연결한다.
+        /// </summary>
+        /// <param name="settings">색각 보정 상태를 제공하는 전역 설정.</param>
+        public void SetAccessibilityDisplaySettings(AccessibilityDisplaySettings settings)
+        {
+            rgbDiagram.SetAccessibilityDisplaySettings(settings);
+        }
+
+        /// <summary>
         /// 설정 팝업을 표시합니다.
         /// </summary>
         /// <param name="cancellationToken">팝업이 파괴될 때 연출을 중단할 토큰입니다.</param>
@@ -92,9 +195,7 @@ namespace Nan.UI
             Sequence tween = DOTween.Sequence().SetUpdate(true);
             tween.Join(rootPanel.transform.DOScale(Vector3.one, tweenDuration).SetEase(tweenEase));
             tween.Join(rootPanel.DOFade(1f, tweenDuration).SetEase(Ease.Linear));
-            tween.Join(
-                background.DOColor(backgroundVisibleColor, tweenDuration).SetEase(Ease.Linear)
-            );
+            tween.Join(background.DOColor(backgroundVisibleColor, tweenDuration).SetEase(Ease.Linear));
             activeTween = tween;
 
             bool isCanceled = await WaitForTweenAsync(tween, cancellationToken);
@@ -137,13 +238,9 @@ namespace Nan.UI
             return ++transitionVersion;
         }
 
-        private async UniTask<bool> WaitForTweenAsync(
-            Sequence tween,
-            CancellationToken cancellationToken
-        )
+        private async UniTask<bool> WaitForTweenAsync(Sequence tween, CancellationToken cancellationToken)
         {
-            bool isCanceled = await tween
-                .AsyncWaitForCompletion()
+            bool isCanceled = await tween.AsyncWaitForCompletion()
                 .AsUniTask()
                 .AttachExternalCancellation(cancellationToken)
                 .SuppressCancellationThrow();
@@ -177,6 +274,31 @@ namespace Nan.UI
             CancelRequested?.Invoke();
         }
 
+        private void HandleMasterVolumeChanged(float volume)
+        {
+            MasterVolumeChanged?.Invoke(volume);
+        }
+
+        private void HandleBgmVolumeChanged(float volume)
+        {
+            BgmVolumeChanged?.Invoke(volume);
+        }
+
+        private void HandleSfxVolumeChanged(float volume)
+        {
+            SfxVolumeChanged?.Invoke(volume);
+        }
+
+        private void HandleColorVisionCorrectionChanged(int value)
+        {
+            ColorVisionCorrectionChanged?.Invoke((ColorVisionCorrection)value);
+        }
+
+        private void HandleSymbolsEnabledChanged(bool enabled)
+        {
+            SymbolsEnabledChanged?.Invoke(enabled);
+        }
+
         private void OnDestroy()
         {
             if (confirmButton != null)
@@ -187,6 +309,31 @@ namespace Nan.UI
             if (cancelButton != null)
             {
                 cancelButton.onClick.RemoveListener(HandleCancelButtonClicked);
+            }
+
+            if (masterVolumeSlider != null)
+            {
+                masterVolumeSlider.onValueChanged.RemoveListener(HandleMasterVolumeChanged);
+            }
+
+            if (bgmVolumeSlider != null)
+            {
+                bgmVolumeSlider.onValueChanged.RemoveListener(HandleBgmVolumeChanged);
+            }
+
+            if (sfxVolumeSlider != null)
+            {
+                sfxVolumeSlider.onValueChanged.RemoveListener(HandleSfxVolumeChanged);
+            }
+
+            if (colorVisionCorrectionDropdown != null)
+            {
+                colorVisionCorrectionDropdown.onValueChanged.RemoveListener(HandleColorVisionCorrectionChanged);
+            }
+
+            if (colorSymbolDisplayToggle != null)
+            {
+                colorSymbolDisplayToggle.onValueChanged.RemoveListener(HandleSymbolsEnabledChanged);
             }
 
             transitionVersion++;

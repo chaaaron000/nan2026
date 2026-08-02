@@ -25,5 +25,6 @@ MonoBehaviour:
   - key: stage_bgm
     clip: {fileID: 8300000, guid: e30b62dfca1e9984087d30a2b39992a6, type: 3}
   sfxSourceCount: 3
-  defaultBgmVolume: 0.325
-  defaultSfxVolume: 1
+  defaultMasterVolume: 0.5
+  defaultBgmVolume: 0.5
+  defaultSfxVolume: 0.5

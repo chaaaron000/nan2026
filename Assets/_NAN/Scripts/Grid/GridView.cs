@@ -512,6 +512,8 @@ public sealed class GridView : MonoBehaviour
 
     private AccessibilityDisplaySettings GetAccessibilityDisplaySettings()
     {
+        accessibilityDisplaySettings = AccessibilityDisplaySettings.Instance;
+
         if (accessibilityDisplaySettings == null)
         {
             throw new InvalidOperationException("GridView requires an AccessibilityDisplaySettings reference.");

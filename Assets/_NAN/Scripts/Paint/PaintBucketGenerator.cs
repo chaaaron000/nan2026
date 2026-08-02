@@ -175,6 +175,8 @@ public sealed class PaintBucketGenerator : MonoBehaviour
 
     private AccessibilityDisplaySettings GetAccessibilityDisplaySettings()
     {
+        accessibilityDisplaySettings = AccessibilityDisplaySettings.Instance;
+
         if (accessibilityDisplaySettings == null)
         {
             throw new InvalidOperationException(
