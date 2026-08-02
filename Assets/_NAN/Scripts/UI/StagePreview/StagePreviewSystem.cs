@@ -79,6 +79,8 @@ namespace Nan.UI
             prevButton.onClick.AddListener(HandlePrevButtonClicked);
             nextButton.onClick.AddListener(HandleNextButtonClicked);
 
+            RestoreSelectedStageIndex();
+
             for (int index = 0; index < PreviewPanelCount; index++)
             {
                 previewPanels[index] = Instantiate(previewPrefab, previewPanelParent);
@@ -157,6 +159,26 @@ namespace Nan.UI
             }
 
             return true;
+        }
+
+        private void RestoreSelectedStageIndex()
+        {
+            StageData selectedStage = StageRunContext.Instance.SelectedStage;
+            if (selectedStage == null)
+            {
+                return;
+            }
+
+            for (int index = 0; index < stageCatalog.Count; index++)
+            {
+                if (stageCatalog.GetStage(index) != selectedStage)
+                {
+                    continue;
+                }
+
+                currentStageIndex = index;
+                return;
+            }
         }
 
         private void HandlePrevButtonClicked()

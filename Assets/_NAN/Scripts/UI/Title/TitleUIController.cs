@@ -41,6 +41,7 @@ namespace Nan.UI
         private Ease swapEase = Ease.OutQuart;
 
         private PanelType currentPanelType = PanelType.MAIN;
+        private PanelType initialPanelType = PanelType.MAIN;
         private bool isTweening = false;
         private bool isInitialized = false;
 
@@ -75,7 +76,18 @@ namespace Nan.UI
                 canvasGroup.interactable = false;
             }
 
-            currentPanelType = PanelType.MAIN;
+            initialPanelType = StageRunContext.Instance.ConsumeReturnToStageSelectionRequest()
+                ? PanelType.STAGE_SELECTION
+                : PanelType.MAIN;
+
+            if (!panels.ContainsKey(initialPanelType))
+            {
+                DebugConsole.LogError($"[TitleUIController] Panel is not configured: {initialPanelType}", this);
+                enabled = false;
+                return;
+            }
+
+            currentPanelType = initialPanelType;
 
             var currentPanel = panels[currentPanelType];
             var currentPanelCanvasGroup = currentPanel.canvasGroup;
@@ -101,7 +113,7 @@ namespace Nan.UI
             }
 
             isTweening = false;
-            currentPanelType = PanelType.MAIN;
+            currentPanelType = initialPanelType;
 
             var currentPanel = panels[currentPanelType];
             var currentPanelCanvasGroup = currentPanel.canvasGroup;
@@ -111,6 +123,7 @@ namespace Nan.UI
 
             // 패널은 레이아웃 안의 양의 좌표에 배치되므로, 해당 패널을 화면 원점에 맞추려면 루트를 반대로 이동해야 합니다.
             root.anchoredPosition = -currentPanel.tweenTargetPosition;
+            initialPanelType = PanelType.MAIN;
         }
 
         /// <summary>

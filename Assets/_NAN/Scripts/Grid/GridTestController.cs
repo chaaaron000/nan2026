@@ -68,6 +68,9 @@ public sealed class GridTestController : MonoBehaviour
             return;
         }
 
+        // 에디터에서 게임 씬을 직접 실행한 경우에도 타이틀 복귀 시 현재 스테이지를 복원할 수 있게 보관한다.
+        StageRunContext.Instance.SelectStage(stageData);
+
         sequencePlayer = new PaintSpreadSequencePlayer(
             gridView,
             paintEffectLibrary,
