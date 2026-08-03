@@ -230,7 +230,9 @@ public sealed class PaintSpreadSequencePlayer : IDisposable
             }
         }
 
-        return Mathf.Max(longestImmediateLifetime, 0.01f);
+        return Mathf.Max(
+            longestImmediateLifetime * effectLibrary.WaveAdvanceLifetimeRatio,
+            0.01f);
     }
 
     private void ApplyWaveResults(PaintSpreadWave wave)
