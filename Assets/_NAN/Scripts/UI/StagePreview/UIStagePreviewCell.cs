@@ -44,11 +44,15 @@ namespace Nan.UI
         public void RefreshVisual(AccessibilityDisplaySettings settings)
         {
             ColorPaletteSO palette = settings.ActivePalette;
-        Material targetMaterial = palette.GetVisualSet(paintState)?.CellMaterial;
-        backgroundImage.material = targetMaterial;
-        backgroundImage.color = targetMaterial == null
-            ? palette.GetColor(paintState)
-            : Color.white;
+            Material targetMaterial = palette.GetVisualSet(paintState)?.CellMaterial;
+
+            // GridView와 동일하게 빈 셀은 격자 배경만 보이게 하고,
+            // 물감이 칠해진 셀만 셀 아트와 물감 머티리얼을 표시한다.
+            backgroundImage.enabled = paintState != PaintState.Empty || targetMaterial != null;
+            backgroundImage.material = targetMaterial;
+            backgroundImage.color = targetMaterial == null
+                ? palette.GetColor(paintState)
+                : Color.white;
 
             bool shouldShowSymbol = settings.SymbolsEnabled && paintState != PaintState.Empty;
             symbolText.gameObject.SetActive(shouldShowSymbol);

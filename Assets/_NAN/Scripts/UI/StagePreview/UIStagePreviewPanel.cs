@@ -13,14 +13,38 @@ namespace Nan.UI
     [DisallowMultipleComponent]
     public sealed class UIStagePreviewPanel : MonoBehaviour
     {
-        private const float CellVisualRatio = 0.48f;
-        private const float WallThicknessRatio = 0.1f;
-
         [SerializeField]
         private RectTransform previewGridContainer;
 
         [SerializeField]
         private UIStagePreviewCell cellPrefab;
+
+        [Header("Grid Decorations")]
+        [SerializeField]
+        private Image gridBackgroundImage;
+
+        [SerializeField]
+        private Image frameImage;
+
+        [SerializeField]
+        private Sprite background5x5;
+
+        [SerializeField]
+        private Sprite background6x6;
+
+        [SerializeField]
+        private Sprite background7x7;
+
+        [SerializeField]
+        [Range(0.1f, 1f)]
+        private float frameInnerRatio = 0.68f;
+
+        [SerializeField]
+        private Sprite wallSprite;
+
+        [SerializeField]
+        [Min(0f)]
+        private float wallThicknessRatio = 0.0882353f;
 
         [SerializeField]
         private TMP_Text stageNameLabel;
@@ -85,8 +109,11 @@ namespace Nan.UI
             stageNameLabel.text = stageData.Title;
             stageDescriptionLabel.text = stageData.Description;
 
-            LayoutCells(stageData, cellCount);
-            LayoutWalls(stageData);
+            float cellSize = CalculateCellSize(stageData.Width, stageData.Height);
+
+            LayoutBoardDecorations(stageData, cellSize);
+            LayoutCells(stageData, cellCount, cellSize);
+            LayoutWalls(stageData, cellSize);
             RefreshCellVisuals();
         }
 
@@ -121,13 +148,10 @@ namespace Nan.UI
             SubscribeDisplaySettings();
         }
 
-        private void LayoutCells(StageData stageData, int cellCount)
+        private void LayoutCells(StageData stageData, int cellCount, float cellSize)
         {
             EnsureCellCapacity(cellCount);
             activeCellCount = cellCount;
-
-            float cellSize = CalculateCellSize(stageData.Width, stageData.Height);
-            Vector2 visualSize = Vector2.one * cellSize * CellVisualRatio;
 
             for (int index = 0; index < cellPool.Count; index++)
             {
@@ -148,18 +172,17 @@ namespace Nan.UI
                     stageData.Height,
                     cellSize
                 );
-                cellRect.sizeDelta = visualSize;
+                cellRect.sizeDelta = Vector2.one * cellSize;
                 cell.SetPaintState(stageData.AnswerPaintStates[index]);
             }
         }
 
-        private void LayoutWalls(StageData stageData)
+        private void LayoutWalls(StageData stageData, float cellSize)
         {
             int wallCount = stageData.WallPositions.Count;
             EnsureWallCapacity(wallCount);
 
-            float cellSize = CalculateCellSize(stageData.Width, stageData.Height);
-            float wallThickness = cellSize * WallThicknessRatio;
+            float wallThickness = cellSize * wallThicknessRatio;
 
             for (int index = 0; index < wallPool.Count; index++)
             {
@@ -186,6 +209,67 @@ namespace Nan.UI
                     : new Vector2(cellSize, wallThickness);
                 wallRect.SetAsLastSibling();
             }
+        }
+
+        private void LayoutBoardDecorations(StageData stageData, float cellSize)
+        {
+            Sprite backgroundSprite = GetBackgroundSprite(stageData.Width, stageData.Height);
+
+            gridBackgroundImage.sprite = backgroundSprite;
+            gridBackgroundImage.enabled = backgroundSprite != null;
+
+            if (backgroundSprite != null)
+            {
+                FitImageToSize(
+                    gridBackgroundImage,
+                    stageData.Width * cellSize,
+                    stageData.Height * cellSize
+                );
+            }
+
+            // GridView와 마찬가지로 프레임 중앙의 실제 개구부 비율을 기준으로
+            // 보드 전체가 프레임 안에 들어가도록 프레임의 외곽 크기를 계산한다.
+            float boardSize = Mathf.Max(stageData.Width, stageData.Height) * cellSize;
+            float frameSize = boardSize / Mathf.Max(frameInnerRatio, 0.1f);
+            FitImageToSize(frameImage, frameSize, frameSize);
+        }
+
+        private Sprite GetBackgroundSprite(int width, int height)
+        {
+            if (width == 5 && height == 5)
+            {
+                return background5x5;
+            }
+
+            if (width == 6 && height == 6)
+            {
+                return background6x6;
+            }
+
+            if (width == 7 && height == 7)
+            {
+                return background7x7;
+            }
+
+            return null;
+        }
+
+        private static void FitImageToSize(
+            Image image,
+            float targetWidth,
+            float targetHeight)
+        {
+            if (image == null || image.sprite == null)
+            {
+                return;
+            }
+
+            Vector2 sourceSize = image.sprite.rect.size;
+            float scaleX = targetWidth / Mathf.Max(sourceSize.x, 0.0001f);
+            float scaleY = targetHeight / Mathf.Max(sourceSize.y, 0.0001f);
+
+            float scale = Mathf.Min(scaleX, scaleY);
+            image.rectTransform.sizeDelta = sourceSize * scale;
         }
 
         private float CalculateCellSize(int width, int height)
@@ -225,7 +309,8 @@ namespace Nan.UI
                 wallObject.transform.SetParent(previewGridContainer, false);
 
                 Image wallImage = wallObject.GetComponent<Image>();
-                wallImage.color = Color.black;
+                wallImage.sprite = wallSprite;
+                wallImage.color = Color.white;
                 wallImage.raycastTarget = false;
 
                 RectTransform wallRect = wallImage.rectTransform;
