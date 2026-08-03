@@ -60,6 +60,7 @@ public sealed class PaintBucketView : MonoBehaviour, IBeginDragHandler, IDragHan
     private static readonly Vector2 SymbolModeRangeTextOffset = new(15f, 0f);
     private static readonly Vector2 SymbolTextOffset = new(-15f, 0f);
     private static readonly Vector2 InteractionSize = new(126f, 96f);
+    private const PaintType VisualScaleReferencePaintType = PaintType.Red;
     private CanvasGroup canvasGroup;
     private RectTransform rectTransform;
     private Canvas rootCanvas;
@@ -179,12 +180,12 @@ public sealed class PaintBucketView : MonoBehaviour, IBeginDragHandler, IDragHan
             ? Instantiate(visualPrefab)
             : Instantiate(visualPrefab, visualParent);
         visualInstance.name = $"{visualPrefab.name} View";
+        ApplyReferenceVisualScale(visualPrefab);
         visualSpriteRenderers.AddRange(visualInstance.GetComponentsInChildren<SpriteRenderer>(true));
         CacheVisualRenderers();
 
         ApplyVisualSorting(false);
         ApplyBucketMaterials();
-        FitVisualToTargetHeight();
         PlayLoopParticles();
         SetVisualAlpha(1f);
         SyncVisualToSlot();
@@ -665,26 +666,47 @@ public sealed class PaintBucketView : MonoBehaviour, IBeginDragHandler, IDragHan
         };
     }
 
-    private void FitVisualToTargetHeight()
+    private void ApplyReferenceVisualScale(GameObject visualPrefab)
     {
-        Bounds bounds = CalculateVisualBounds();
+        GameObject referencePrefab = GetVisualScaleReferencePrefab(visualPrefab);
+        float referenceHeight = CalculateVisualBoundsHeight(referencePrefab);
 
-        if (bounds.size.y <= 0.0001f)
+        if (referenceHeight <= 0.0001f)
         {
             return;
         }
 
-        float scale = visualWorldHeight / bounds.size.y;
+        // Clear 전용 장식 렌더러가 크기 기준에 섞이지 않도록 RGB 기준 프리팹에서 계산한 배율을 모든 물감통에 공통 적용한다.
+        float scale = visualWorldHeight / referenceHeight;
         visualInstance.transform.localScale *= scale;
     }
 
-    private Bounds CalculateVisualBounds()
+    private GameObject GetVisualScaleReferencePrefab(GameObject fallbackPrefab)
     {
-        Renderer[] renderers = visualInstance.GetComponentsInChildren<Renderer>(true);
-        Bounds bounds = new(visualInstance.transform.position, Vector3.zero);
+        if (visualData == null)
+        {
+            return fallbackPrefab;
+        }
+
+        GameObject referencePrefab =
+            visualData.GetPrefab(VisualScaleReferencePaintType);
+
+        return referencePrefab != null
+            ? referencePrefab
+            : fallbackPrefab;
+    }
+
+    private static float CalculateVisualBoundsHeight(GameObject prefab)
+    {
+        if (prefab == null)
+        {
+            return 0f;
+        }
+
+        Bounds bounds = new(prefab.transform.position, Vector3.zero);
         bool hasBounds = false;
 
-        foreach (Renderer renderer in renderers)
+        foreach (Renderer renderer in prefab.GetComponentsInChildren<Renderer>(true))
         {
             if (!hasBounds)
             {
@@ -696,7 +718,7 @@ public sealed class PaintBucketView : MonoBehaviour, IBeginDragHandler, IDragHan
             bounds.Encapsulate(renderer.bounds);
         }
 
-        return bounds;
+        return hasBounds ? bounds.size.y : 0f;
     }
 
     private void PlayLoopParticles()

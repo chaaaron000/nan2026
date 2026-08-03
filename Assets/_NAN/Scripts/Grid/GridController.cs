@@ -7,7 +7,7 @@ using TMPro;
 /// 테스트용 격자와 물감통을 초기화하고
 /// 물감 사용 Command를 임시로 실행하는 테스트 클래스
 /// </summary>
-public sealed class GridTestController : MonoBehaviour
+public sealed class GridController : MonoBehaviour
 {
     // 테스트에 사용할 스테이지 데이터
     [SerializeField]

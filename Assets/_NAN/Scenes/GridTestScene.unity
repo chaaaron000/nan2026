@@ -1107,7 +1107,7 @@ GameObject:
   - component: {fileID: 230329653}
   - component: {fileID: 230329652}
   m_Layer: 0
-  m_Name: GridTestController
+  m_Name: GridController
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
