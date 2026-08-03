@@ -418,14 +418,7 @@ public sealed class PaintBucketView : MonoBehaviour, IBeginDragHandler, IDragHan
 
     private Color GetBucketTextColor()
     {
-        if (paintType == PaintType.Clear)
-        {
-            return Color.black;
-        }
-
-        return displaySettings?.ActivePalette != null
-            ? displaySettings.ActivePalette.GetSymbolColor(paintType)
-            : Color.white;
+        return Color.black;
     }
 
     private void ApplyTextAnchors(bool symbolEnabled)
@@ -486,16 +479,15 @@ public sealed class PaintBucketView : MonoBehaviour, IBeginDragHandler, IDragHan
         }
 
         ApplyFontMaterial(text);
-        Color outlineColor = GetReadableOutlineColor(textColor);
 
-        text.color = Color.white;
+        text.color = textColor;
         text.faceColor = textColor;
         text.alignment = TextAlignmentOptions.Center;
         text.enableAutoSizing = true;
         text.fontSizeMin = 18f;
         text.fontSizeMax = 32f;
         text.fontStyle = FontStyles.Bold;
-        text.outlineColor = outlineColor;
+        text.outlineColor = textColor;
         text.outlineWidth = textOutlineWidth;
         text.UpdateMeshPadding();
         text.ForceMeshUpdate();
