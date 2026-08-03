@@ -72,6 +72,7 @@ public sealed class PaintBucketView : MonoBehaviour, IBeginDragHandler, IDragHan
     private bool wasSymbolTextActiveBeforeDrag;
     private bool isDragging;
     private bool isConsumed;
+    private bool isReserved;
     private PaintType paintType;
     private AccessibilityDisplaySettings displaySettings;
     private PaintBucketVisualData visualData;
@@ -261,18 +262,38 @@ public sealed class PaintBucketView : MonoBehaviour, IBeginDragHandler, IDragHan
     public void SetConsumed(bool consumed)
     {
         isConsumed = consumed;
-        button.interactable = !consumed;
 
         if (consumed)
+        {
+            isReserved = false;
+            SetSelected(false);
+        }
+
+        RefreshAvailability();
+    }
+
+    /// <summary>물감통이 다음 사용 순서로 예약된 상태를 화면과 입력 상태에 반영한다.</summary>
+    /// <param name="reserved">true이면 물감통을 예약 상태로 표시하고 추가 입력을 막는다.</param>
+    public void SetReserved(bool reserved)
+    {
+        isReserved = reserved;
+
+        if (reserved)
         {
             SetSelected(false);
         }
 
-        gameObject.SetActive(!consumed);
+        RefreshAvailability();
+    }
+
+    private void RefreshAvailability()
+    {
+        button.interactable = !isConsumed && !isReserved;
+        gameObject.SetActive(!isConsumed && !isReserved);
 
         if (visualInstance != null)
         {
-            visualInstance.SetActive(!consumed);
+            visualInstance.SetActive(!isConsumed && !isReserved);
         }
     }
 

@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 using TMPro;
 
@@ -49,6 +50,24 @@ public sealed class GridTestController : MonoBehaviour
     private PaintSpreadSequencePlayer sequencePlayer;
     private Coroutine paintSequenceCoroutine;
     private PaintApplicationPlan activePlan;
+    private readonly Queue<PendingBucketUseRequest> pendingBucketUseRequests = new();
+
+    private readonly struct PendingBucketUseRequest
+    {
+        public int BucketId { get; }
+        public PaintBucket Bucket { get; }
+        public Vector2Int GridPosition { get; }
+
+        public PendingBucketUseRequest(
+            int bucketId,
+            PaintBucket bucket,
+            Vector2Int gridPosition)
+        {
+            BucketId = bucketId;
+            Bucket = bucket;
+            GridPosition = gridPosition;
+        }
+    }
 
     private void Start()
     {
@@ -91,6 +110,7 @@ public sealed class GridTestController : MonoBehaviour
             HandleBucketUseRequested;
 
         CompleteActiveSequenceImmediately();
+        ClearPendingBucketUseRequests();
     }
 
     /// <summary>
@@ -100,6 +120,7 @@ public sealed class GridTestController : MonoBehaviour
     public void CreateTestGrid()
     {
         CompleteActiveSequenceImmediately();
+        ClearPendingBucketUseRequests();
 
         SoundManager.Instance?.PlayBgm(
             SoundKeys.StageBgm);
@@ -158,6 +179,28 @@ public sealed class GridTestController : MonoBehaviour
             return;
         }
 
+        if (activePlan != null)
+        {
+            ReserveBucketUse(
+                bucketId,
+                bucket,
+                gridPosition);
+            return;
+        }
+
+        ExecuteBucketUse(
+            bucketId,
+            bucket,
+            gridPosition,
+            true);
+    }
+
+    private bool ExecuteBucketUse(
+        int bucketId,
+        PaintBucket bucket,
+        Vector2Int gridPosition,
+        bool playUseSound)
+    {
         PaintBucketUseCommand command =
             new PaintBucketUseCommand(
                 bucketId,
@@ -170,27 +213,89 @@ public sealed class GridTestController : MonoBehaviour
 
         // 선택된 물감통과 셀 입력이 이미 검증된 이벤트이므로,
         // 범위 계산과 화면 갱신보다 먼저 입력 피드백을 재생한다.
-        SoundManager.Instance?.PlaySfx(
-            SoundKeys.PaintBucketUse);
+        if (playUseSound)
+        {
+            SoundManager.Instance?.PlaySfx(
+                SoundKeys.PaintBucketUse);
+        }
 
         if (commandController.Execute(command))
         {
             activePlan = command.Plan;
-            SetGameplayInputEnabled(false);
+            SetGameplayInputEnabled(
+                false,
+                true);
             paintSequenceCoroutine = StartCoroutine(
                 sequencePlayer.Play(
                     activePlan,
                     bucket.PaintType,
-                    HandlePaintSequenceCompleted));
+                HandlePaintSequenceCompleted));
+            return true;
         }
+
+        return false;
+    }
+
+    private void ReserveBucketUse(
+        int bucketId,
+        PaintBucket bucket,
+        Vector2Int gridPosition)
+    {
+        if (!bucketController.Reserve(bucketId))
+        {
+            return;
+        }
+
+        pendingBucketUseRequests.Enqueue(
+            new PendingBucketUseRequest(
+                bucketId,
+                bucket,
+                gridPosition));
+
+        SoundManager.Instance?.PlaySfx(
+            SoundKeys.PaintBucketUse);
     }
 
     private void HandlePaintSequenceCompleted()
     {
         paintSequenceCoroutine = null;
         activePlan = null;
-        SetGameplayInputEnabled(true);
+        SetGameplayInputEnabled(
+            true,
+            true);
+
+        if (TryExecuteNextPendingBucketUse())
+        {
+            return;
+        }
+
         stageClearChecker.Check(gridState);
+    }
+
+    private bool TryExecuteNextPendingBucketUse()
+    {
+        while (pendingBucketUseRequests.Count > 0)
+        {
+            PendingBucketUseRequest request =
+                pendingBucketUseRequests.Dequeue();
+
+            if (!ExecuteBucketUse(
+                request.BucketId,
+                request.Bucket,
+                request.GridPosition,
+                false))
+            {
+                bucketController.ReleaseReservation(
+                    request.BucketId);
+            }
+
+            if (activePlan != null)
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private void CompleteActiveSequenceImmediately()
@@ -217,13 +322,36 @@ public sealed class GridTestController : MonoBehaviour
         }
 
         activePlan = null;
-        SetGameplayInputEnabled(true);
+        SetGameplayInputEnabled(
+            true,
+            true);
     }
 
     private void SetGameplayInputEnabled(bool enabled)
     {
-        bucketController.SetInputEnabled(enabled);
-        commandController.SetInputEnabled(enabled);
+        SetGameplayInputEnabled(
+            enabled,
+            enabled);
+    }
+
+    private void SetGameplayInputEnabled(
+        bool commandInputEnabled,
+        bool bucketInputEnabled)
+    {
+        bucketController.SetInputEnabled(bucketInputEnabled);
+        commandController.SetInputEnabled(commandInputEnabled);
+    }
+
+    private void ClearPendingBucketUseRequests()
+    {
+        while (pendingBucketUseRequests.Count > 0)
+        {
+            PendingBucketUseRequest request =
+                pendingBucketUseRequests.Dequeue();
+
+            bucketController.ReleaseReservation(
+                request.BucketId);
+        }
     }
 
     private void HandleStageCleared()
