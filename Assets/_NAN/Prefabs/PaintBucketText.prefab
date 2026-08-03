@@ -67,8 +67,8 @@ MonoBehaviour:
       m_Calls: []
   m_text: R
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
-  m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
+  m_fontAsset: {fileID: 11400000, guid: 9212140ef03aee846972003a4cb6da8c, type: 2}
+  m_sharedMaterial: {fileID: -1594048484222829285, guid: 9212140ef03aee846972003a4cb6da8c, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
@@ -152,7 +152,7 @@ GameObject:
   - component: {fileID: 3776773658177548186}
   - component: {fileID: 398106370926930832}
   m_Layer: 5
-  m_Name: PaintBucket
+  m_Name: PaintBucketText
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -277,6 +277,15 @@ MonoBehaviour:
   bucketImage: {fileID: 8132065116498158324}
   rangeText: {fileID: 4218455005811347255}
   symbolText: {fileID: 7857532605725275546}
+  visualWorldHeight: 1.15
+  visualWorldZ: 0
+  draggingAlpha: 0.6
+  visualSortingLayer: GridWall
+  visualSortingOrder: 10000
+  draggingSortingOrderBonus: 1000
+  textSize: {x: 42, y: 40}
+  textOutlineColor: {r: 0, g: 0, b: 0, a: 1}
+  textOutlineWidth: 0.22
 --- !u!114 &398106370926930832
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -364,8 +373,8 @@ MonoBehaviour:
       m_Calls: []
   m_text: Button
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
-  m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
+  m_fontAsset: {fileID: 11400000, guid: 9212140ef03aee846972003a4cb6da8c, type: 2}
+  m_sharedMaterial: {fileID: -1594048484222829285, guid: 9212140ef03aee846972003a4cb6da8c, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []

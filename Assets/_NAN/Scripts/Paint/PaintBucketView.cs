@@ -78,6 +78,7 @@ public sealed class PaintBucketView : MonoBehaviour, IBeginDragHandler, IDragHan
     private AccessibilityDisplaySettings displaySettings;
     private PaintBucketVisualData visualData;
     private bool isDisplaySettingsSubscribed;
+    private int textStyleRefreshFramesRemaining;
 
     /// <summary>
     /// 플레이어가 이 물감통을 클릭했을 때 발생한다.
@@ -114,6 +115,7 @@ public sealed class PaintBucketView : MonoBehaviour, IBeginDragHandler, IDragHan
 
         SubscribeDisplaySettings();
         RefreshSymbol();
+        QueueTextStyleRefresh();
         ConfigureInteractionArea();
         SyncVisualToSlot();
     }
@@ -145,6 +147,7 @@ public sealed class PaintBucketView : MonoBehaviour, IBeginDragHandler, IDragHan
         rangeText.text = range.ToString();
         paintType = newPaintType;
         RefreshSymbol();
+        QueueTextStyleRefresh();
 
         SetSelected(false);
         SetConsumed(false);
@@ -245,6 +248,7 @@ public sealed class PaintBucketView : MonoBehaviour, IBeginDragHandler, IDragHan
         displaySettings = settings;
         SubscribeDisplaySettings();
         RefreshSymbol();
+        QueueTextStyleRefresh();
         ApplyBucketMaterials();
     }
 
@@ -369,6 +373,12 @@ public sealed class PaintBucketView : MonoBehaviour, IBeginDragHandler, IDragHan
 
     private void LateUpdate()
     {
+        if (textStyleRefreshFramesRemaining > 0)
+        {
+            textStyleRefreshFramesRemaining--;
+            RefreshSymbol();
+        }
+
         if (!isDragging)
         {
             SyncVisualToSlot();
@@ -475,14 +485,37 @@ public sealed class PaintBucketView : MonoBehaviour, IBeginDragHandler, IDragHan
             return;
         }
 
-        text.color = textColor;
+        ApplyFontMaterial(text);
+        Color outlineColor = GetReadableOutlineColor(textColor);
+
+        text.color = Color.white;
+        text.faceColor = textColor;
         text.alignment = TextAlignmentOptions.Center;
         text.enableAutoSizing = true;
         text.fontSizeMin = 18f;
         text.fontSizeMax = 32f;
         text.fontStyle = FontStyles.Bold;
-        text.outlineColor = GetReadableOutlineColor(textColor);
+        text.outlineColor = outlineColor;
         text.outlineWidth = textOutlineWidth;
+        text.UpdateMeshPadding();
+        text.ForceMeshUpdate();
+    }
+
+    private static void ApplyFontMaterial(TMP_Text text)
+    {
+        if (text.font == null || text.font.material == null)
+        {
+            return;
+        }
+
+        // 폰트를 교체한 프리팹에 이전 폰트 머티리얼 참조가 남아 있으면
+        // Face/Outline 색이 뒤집혀 보일 수 있어 현재 폰트의 기본 머티리얼로 정렬한다.
+        text.fontMaterial = text.font.material;
+    }
+
+    private void QueueTextStyleRefresh()
+    {
+        textStyleRefreshFramesRemaining = 2;
     }
 
     private Color GetReadableOutlineColor(Color textColor)
@@ -770,12 +803,14 @@ public sealed class PaintBucketView : MonoBehaviour, IBeginDragHandler, IDragHan
     private void HandlePaletteChanged(ColorPaletteSO palette)
     {
         RefreshSymbol();
+        QueueTextStyleRefresh();
         ApplyBucketMaterials();
     }
 
     private void HandleSymbolsEnabledChanged(bool enabled)
     {
         RefreshSymbol();
+        QueueTextStyleRefresh();
     }
 
     private void OnDestroy()
