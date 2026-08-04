@@ -1,10 +1,10 @@
 fileFormatVersion: 2
-guid: 40df735527b8d7d47b149686319f4785
+guid: fadabae6a7b5bf147b4bce70a90d1e0c
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: 2941720277212552561
-    second: T_puzzleWallLink_0
+      213: -9086074870238196726
+    second: tilemap6_0
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -40,9 +40,9 @@ TextureImporter:
     filterMode: 1
     aniso: 1
     mipBias: 0
-    wrapU: 1
-    wrapV: 1
-    wrapW: 1
+    wrapU: 0
+    wrapV: 0
+    wrapW: 0
   nPOTScale: 0
   lightmap: 0
   compressionQuality: 50
@@ -113,13 +113,13 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: T_puzzleWallLink_0
+      name: tilemap6_0
       rect:
         serializedVersion: 2
-        x: 225
-        y: 224
-        width: 62
-        height: 63
+        x: 0
+        y: 0
+        width: 512
+        height: 512
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -128,8 +128,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 17d51d7910713d820800000000000000
-      internalID: 2941720277212552561
+      spriteID: a0c49dcab07c7e180800000000000000
+      internalID: -9086074870238196726
       vertices: []
       indices: 
       edges: []
@@ -148,7 +148,7 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      T_puzzleWallLink_0: 2941720277212552561
+      tilemap6_0: -9086074870238196726
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

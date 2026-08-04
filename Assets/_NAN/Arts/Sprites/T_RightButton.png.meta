@@ -1,10 +1,10 @@
 fileFormatVersion: 2
-guid: ce568283fd3a4a946a09b972ea2788fa
+guid: af6d4683703ee4d428f540742a6d45c1
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: -6006600273817239350
-    second: T_puzzleWall_0
+      213: -5402419595248917105
+    second: T_RightButton_0
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -46,7 +46,7 @@ TextureImporter:
   nPOTScale: 0
   lightmap: 0
   compressionQuality: 50
-  spriteMode: 2
+  spriteMode: 1
   spriteExtrude: 1
   spriteMeshType: 1
   alignment: 0
@@ -113,13 +113,13 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: T_puzzleWall_0
+      name: T_RightButton_0
       rect:
         serializedVersion: 2
-        x: 238
-        y: 105
-        width: 37
-        height: 303
+        x: 82
+        y: 60
+        width: 109
+        height: 135
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -128,8 +128,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: ac00c5310e444aca0800000000000000
-      internalID: -6006600273817239350
+      spriteID: f8524995000c605b0800000000000000
+      internalID: -5402419595248917105
       vertices: []
       indices: 
       edges: []
@@ -138,7 +138,7 @@ TextureImporter:
     customData: 
     physicsShape: []
     bones: []
-    spriteID: 
+    spriteID: 5e97eb03825dee720800000000000000
     internalID: 0
     vertices: []
     indices: 
@@ -148,7 +148,7 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      T_puzzleWall_0: -6006600273817239350
+      T_RightButton_0: -5402419595248917105
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 
