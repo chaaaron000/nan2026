@@ -17,4 +17,7 @@ public static class SoundKeys
 
     /// <summary>스테이지 화면에서 재생할 배경음 키를 반환한다.</summary>
     public const string StageBgm = "stage_bgm";
+    
+    /// <summary>타이틀 화면에서 재생할 배경음 키를 반환한다.</summary>
+    public const string TitleBgm = "title_bgm";
 }

@@ -96,6 +96,9 @@ namespace Nan.UI
             currentPanelCanvasGroup.interactable = true;
 
             isInitialized = true;
+            
+            SoundManager.Instance?.PlayBgm(
+                SoundKeys.TitleBgm);
         }
 
         private void OnEnable()

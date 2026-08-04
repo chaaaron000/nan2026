@@ -95,7 +95,7 @@ public sealed class GridController : MonoBehaviour
             paintEffectLibrary,
             () => gridView.ActivePalette);
 
-        CreateTestGrid();
+        CreateGrid();
     }
 
     private void OnEnable()
@@ -117,7 +117,7 @@ public sealed class GridController : MonoBehaviour
     /// StageData를 바탕으로 테스트 격자와
     /// 물감통 목록을 초기화한다.
     /// </summary>
-    public void CreateTestGrid()
+    public void CreateGrid()
     {
         CompleteActiveSequenceImmediately();
         ClearPendingBucketUseRequests();
