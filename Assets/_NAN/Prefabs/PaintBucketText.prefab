@@ -277,13 +277,13 @@ MonoBehaviour:
   bucketImage: {fileID: 8132065116498158324}
   rangeText: {fileID: 4218455005811347255}
   symbolText: {fileID: 7857532605725275546}
-  visualWorldHeight: 1.15
+  visualWorldHeight: 1.47
   visualWorldZ: 0
   draggingAlpha: 0.6
   visualSortingLayer: GridWall
   visualSortingOrder: 10000
   draggingSortingOrderBonus: 1000
-  textSize: {x: 42, y: 40}
+  textSize: {x: 54, y: 50}
   textOutlineColor: {r: 0, g: 0, b: 0, a: 1}
   textOutlineWidth: 0.22
 --- !u!114 &398106370926930832

@@ -109,7 +109,6 @@ public sealed class PaintEffectLibrary
         {
             "paint" => PaintEffectMaterialType.Center,
             "Paint" => PaintEffectMaterialType.Edge,
-            "Particle System (1)" => PaintEffectMaterialType.Edge,
             "bubble" => PaintEffectMaterialType.Bubble,
             "glow" => PaintEffectMaterialType.Glow,
             "glowSub" => PaintEffectMaterialType.GlowSub,

@@ -60,6 +60,10 @@ public sealed class GridView : MonoBehaviour
     private int wallSortingOrder = 30;
 
     [SerializeField]
+    [Tooltip("불투명 셀 이미지의 깊이 버퍼보다 벽을 카메라 쪽에 배치하는 오프셋")]
+    private float wallDepthOffset = -0.01f;
+
+    [SerializeField]
     private GameObject wallPrefab;
 
     [SerializeField]
@@ -314,7 +318,9 @@ public sealed class GridView : MonoBehaviour
     {
         Vector2 localPosition = GridLayoutUtility.GetWallLocalPosition(wallPosition, gridWidth, gridHeight, cellSize);
 
-        return new Vector3(localPosition.x, localPosition.y, 0f);
+        // 셀 머티리얼이 깊이 버퍼를 기록해도 벽이 이미지 뒤로 가려지지 않게
+        // 카메라 쪽으로 아주 조금 분리한다.
+        return new Vector3(localPosition.x, localPosition.y, wallDepthOffset);
     }
 
     private void CreateBoardDecorations()

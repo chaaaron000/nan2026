@@ -21,6 +21,10 @@ public sealed class GridController : MonoBehaviour
     [SerializeField]
     private GridView answerGridView;
 
+    [SerializeField]
+    [Tooltip("AnswerGrid 크기에 맞춰 함께 조절할 정답 그림 프레임")]
+    private Transform answerPaintingFrame;
+
     // 물감통 생성과 선택을 관리할 Controller
     [SerializeField]
     private PaintBucketController
@@ -149,6 +153,9 @@ public sealed class GridController : MonoBehaviour
         answerGridView.CreateGrid(
             answerGridState,
             false);
+        ResizeAnswerPaintingFrame(
+            stageData.Width,
+            stageData.Height);
         answerGridView.SetCellPaintStates(
             stageData.AnswerPaintStates);
 
@@ -167,6 +174,24 @@ public sealed class GridController : MonoBehaviour
         // 씬 활성화만으로는 퍼즐 View 생성 완료를 보장할 수 없으므로,
         // 모든 초기화가 끝난 뒤 전환 화면을 열 수 있도록 명시적으로 알린다.
         SceneTransitionManager.Instance.NotifySceneReady();
+    }
+
+    private void ResizeAnswerPaintingFrame(int width, int height)
+    {
+        if (answerPaintingFrame == null || width != height)
+        {
+            return;
+        }
+
+        float scale = width switch
+        {
+            5 => 0.42f,
+            6 => 0.5f,
+            7 => 0.575f,
+            _ => answerPaintingFrame.localScale.x
+        };
+
+        answerPaintingFrame.localScale = new Vector3(scale, scale, 1f);
     }
 
     private void HandleBucketUseRequested(

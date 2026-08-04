@@ -25,7 +25,7 @@ public sealed class PaintBucketView : MonoBehaviour, IBeginDragHandler, IDragHan
     [Header("World Visual")]
     [SerializeField]
     [Min(0.1f)]
-    private float visualWorldHeight = 1.15f;
+    private float visualWorldHeight = 1.47f;
 
     [SerializeField]
     private float visualWorldZ;
@@ -44,7 +44,7 @@ public sealed class PaintBucketView : MonoBehaviour, IBeginDragHandler, IDragHan
     private int draggingSortingOrderBonus = 1000;
 
     [SerializeField]
-    private Vector2 textSize = new(42f, 40f);
+    private Vector2 textSize = new(54f, 50f);
 
     [SerializeField]
     private Color textOutlineColor = Color.black;
@@ -57,9 +57,12 @@ public sealed class PaintBucketView : MonoBehaviour, IBeginDragHandler, IDragHan
     private readonly List<Renderer> visualRenderers = new();
     private readonly List<int> visualOriginalSortingOrders = new();
     private static readonly Vector2 RangeOnlyTextOffset = Vector2.zero;
-    private static readonly Vector2 SymbolModeRangeTextOffset = new(15f, 0f);
-    private static readonly Vector2 SymbolTextOffset = new(-15f, 0f);
+    private static readonly Vector2 SymbolModeRangeTextOffset = new(19f, 0f);
+    private static readonly Vector2 SymbolTextOffset = new(-19f, 0f);
     private static readonly Vector2 InteractionSize = new(126f, 96f);
+    private const float TextMinimumFontSize = 22f;
+    private const float SymbolModeMaximumFontSize = 40f;
+    private const float RangeOnlyMaximumFontSize = 44f;
     private const PaintType VisualScaleReferencePaintType = PaintType.Red;
     private CanvasGroup canvasGroup;
     private RectTransform rectTransform;
@@ -401,7 +404,12 @@ public sealed class PaintBucketView : MonoBehaviour, IBeginDragHandler, IDragHan
         Color textColor = GetBucketTextColor();
         symbolText.gameObject.SetActive(shouldShowSymbol);
         ApplyTextAnchors(shouldShowSymbol);
-        ApplyTextStyle(rangeText, textColor);
+        ApplyTextStyle(
+            rangeText,
+            textColor,
+            shouldShowSymbol
+                ? SymbolModeMaximumFontSize
+                : RangeOnlyMaximumFontSize);
 
         if (!shouldShowSymbol || displaySettings.ActivePalette == null)
         {
@@ -413,7 +421,10 @@ public sealed class PaintBucketView : MonoBehaviour, IBeginDragHandler, IDragHan
             : paintType.ToString()[0].ToString();
 
         // Clear 물감통은 현재 흰색 아이콘을 사용하므로, 팔레트의 빈 셀 색 대신 검정 심볼을 사용한다.
-        ApplyTextStyle(symbolText, textColor);
+        ApplyTextStyle(
+            symbolText,
+            textColor,
+            SymbolModeMaximumFontSize);
     }
 
     private Color GetBucketTextColor()
@@ -471,7 +482,10 @@ public sealed class PaintBucketView : MonoBehaviour, IBeginDragHandler, IDragHan
         textTransform.sizeDelta = textSize;
     }
 
-    private void ApplyTextStyle(TMP_Text text, Color textColor)
+    private void ApplyTextStyle(
+        TMP_Text text,
+        Color textColor,
+        float maximumFontSize)
     {
         if (text == null)
         {
@@ -484,8 +498,8 @@ public sealed class PaintBucketView : MonoBehaviour, IBeginDragHandler, IDragHan
         text.faceColor = textColor;
         text.alignment = TextAlignmentOptions.Center;
         text.enableAutoSizing = true;
-        text.fontSizeMin = 18f;
-        text.fontSizeMax = 32f;
+        text.fontSizeMin = TextMinimumFontSize;
+        text.fontSizeMax = maximumFontSize;
         text.fontStyle = FontStyles.Bold;
         text.outlineColor = textColor;
         text.outlineWidth = textOutlineWidth;
@@ -686,7 +700,11 @@ public sealed class PaintBucketView : MonoBehaviour, IBeginDragHandler, IDragHan
     {
         return objectName switch
         {
+            "paint" => PaintEffectMaterialType.Center,
+            "Paint" => PaintEffectMaterialType.Edge,
             "bubble" => PaintEffectMaterialType.Bubble,
+            "glow" => PaintEffectMaterialType.Glow,
+            "glowSub" => PaintEffectMaterialType.GlowSub,
             _ => null,
         };
     }
