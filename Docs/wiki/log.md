@@ -26,3 +26,8 @@
 - Updated: 전역 서비스와 접근성 표시
 
 ## [2026-08-02] lint | 0 issues found, 0 auto-fixed
+
+## [2026-08-04] ingest | 물감통 사용 예약
+- Updated: 물감통 클래스 역할과 책임
+- Updated: 물감 확산 계산과 연출
+- Updated: 커맨드 실행과 되돌리기
