@@ -33,6 +33,9 @@ public sealed class CellView : MonoBehaviour, IPointerClickHandler
 
     private AccessibilityDisplaySettings displaySettings;
     private bool isDisplaySettingsSubscribed;
+    private const float DefaultSymbolSizeRatio = 0.45f;
+    private const float WhiteSymbolWidthRatio = 0.68f;
+    private const float WhiteSymbolHeightRatio = 0.5f;
 
     private void Awake()
     {
@@ -237,20 +240,34 @@ public sealed class CellView : MonoBehaviour, IPointerClickHandler
         symbolText.transform.localScale = Vector3.one;
         symbolText.ForceMeshUpdate();
 
-        float currentSymbolSize = Mathf.Max(
-            symbolRenderer.bounds.size.x,
-            symbolRenderer.bounds.size.y);
-        float targetSymbolSize = Mathf.Max(
-            spriteRenderer.bounds.size.x,
-            spriteRenderer.bounds.size.y) * 0.45f;
+        Vector3 currentSymbolSize = symbolRenderer.bounds.size;
 
-        if (currentSymbolSize <= 0.0001f)
+        if (currentSymbolSize.x <= 0.0001f || currentSymbolSize.y <= 0.0001f)
         {
             return;
         }
 
-        float scale = targetSymbolSize / currentSymbolSize;
+        Vector3 cellSize = spriteRenderer.bounds.size;
+        Vector2 targetSymbolSize = GetTargetSymbolSize(cellSize);
+        float scale = Mathf.Min(
+            targetSymbolSize.x / currentSymbolSize.x,
+            targetSymbolSize.y / currentSymbolSize.y);
         symbolText.transform.localScale = Vector3.one * scale;
+    }
+
+    private Vector2 GetTargetSymbolSize(Vector3 cellSize)
+    {
+        if (currentPaintState == PaintState.White)
+        {
+            return new Vector2(
+                cellSize.x * WhiteSymbolWidthRatio,
+                cellSize.y * WhiteSymbolHeightRatio);
+        }
+
+        float targetSize =
+            Mathf.Max(cellSize.x, cellSize.y) * DefaultSymbolSizeRatio;
+
+        return new Vector2(targetSize, targetSize);
     }
 
 }

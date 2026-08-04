@@ -70,6 +70,8 @@ namespace Nan.UI
 
         private void Awake()
         {
+            accessibilityDisplaySettings = AccessibilityDisplaySettings.Instance;
+
             if (!ValidateConfiguration())
             {
                 enabled = false;

@@ -28,6 +28,7 @@ public sealed class PaintBucketController
         public PaintBucket Data { get; }
         public PaintBucketView View { get; }
         public bool IsConsumed { get; private set; }
+        public bool IsReserved { get; private set; }
 
         public BucketEntry(
             int id,
@@ -42,7 +43,18 @@ public sealed class PaintBucketController
         public void SetConsumed(bool consumed)
         {
             IsConsumed = consumed;
+            if (consumed)
+            {
+                IsReserved = false;
+            }
+
             View.SetConsumed(consumed);
+        }
+
+        public void SetReserved(bool reserved)
+        {
+            IsReserved = reserved;
+            View.SetReserved(reserved);
         }
     }
 
@@ -172,9 +184,52 @@ public sealed class PaintBucketController
             selectedBucket = null;
         }
 
+        // 예약된 물감통은 예약 단계에서 이미 입력을 막았으므로
+        // 실제 소모 처리 시에는 예약 상태만 해제하고 소모 상태로 확정한다.
+        if (entry.IsReserved)
+        {
+            entry.SetReserved(false);
+        }
+
         //물감통 소모
         entry.SetConsumed(true);
 
+        return true;
+    }
+
+    /// <summary>지정한 물감통을 이후 실행될 사용 예약 상태로 전환한다.</summary>
+    public bool Reserve(int bucketId)
+    {
+        BucketEntry entry =
+            GetBucketEntry(bucketId);
+
+        if (entry.IsConsumed || entry.IsReserved)
+        {
+            return false;
+        }
+
+        if (selectedBucket == entry)
+        {
+            selectedBucket.View.SetSelected(false);
+            selectedBucket = null;
+        }
+
+        entry.SetReserved(true);
+        return true;
+    }
+
+    /// <summary>지정한 물감통의 사용 예약 상태를 취소한다.</summary>
+    public bool ReleaseReservation(int bucketId)
+    {
+        BucketEntry entry =
+            GetBucketEntry(bucketId);
+
+        if (!entry.IsReserved)
+        {
+            return false;
+        }
+
+        entry.SetReserved(false);
         return true;
     }
 
@@ -216,7 +271,7 @@ public sealed class PaintBucketController
             return;
         }
 
-        if (clickedEntry.IsConsumed)
+        if (clickedEntry.IsConsumed || clickedEntry.IsReserved)
         {
             return;
         }
@@ -257,7 +312,8 @@ public sealed class PaintBucketController
         }
         
         if (selectedBucket == null
-            || selectedBucket.IsConsumed)
+            || selectedBucket.IsConsumed
+            || selectedBucket.IsReserved)
         {
             return;
         }
@@ -291,7 +347,7 @@ public sealed class PaintBucketController
             return;
         }
 
-        if (droppedEntry.IsConsumed)
+        if (droppedEntry.IsConsumed || droppedEntry.IsReserved)
         {
             return;
         }

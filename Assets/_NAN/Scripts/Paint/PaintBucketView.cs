@@ -60,6 +60,7 @@ public sealed class PaintBucketView : MonoBehaviour, IBeginDragHandler, IDragHan
     private static readonly Vector2 SymbolModeRangeTextOffset = new(15f, 0f);
     private static readonly Vector2 SymbolTextOffset = new(-15f, 0f);
     private static readonly Vector2 InteractionSize = new(126f, 96f);
+    private const PaintType VisualScaleReferencePaintType = PaintType.Red;
     private CanvasGroup canvasGroup;
     private RectTransform rectTransform;
     private Canvas rootCanvas;
@@ -72,10 +73,12 @@ public sealed class PaintBucketView : MonoBehaviour, IBeginDragHandler, IDragHan
     private bool wasSymbolTextActiveBeforeDrag;
     private bool isDragging;
     private bool isConsumed;
+    private bool isReserved;
     private PaintType paintType;
     private AccessibilityDisplaySettings displaySettings;
     private PaintBucketVisualData visualData;
     private bool isDisplaySettingsSubscribed;
+    private int textStyleRefreshFramesRemaining;
 
     /// <summary>
     /// 플레이어가 이 물감통을 클릭했을 때 발생한다.
@@ -112,6 +115,7 @@ public sealed class PaintBucketView : MonoBehaviour, IBeginDragHandler, IDragHan
 
         SubscribeDisplaySettings();
         RefreshSymbol();
+        QueueTextStyleRefresh();
         ConfigureInteractionArea();
         SyncVisualToSlot();
     }
@@ -143,6 +147,7 @@ public sealed class PaintBucketView : MonoBehaviour, IBeginDragHandler, IDragHan
         rangeText.text = range.ToString();
         paintType = newPaintType;
         RefreshSymbol();
+        QueueTextStyleRefresh();
 
         SetSelected(false);
         SetConsumed(false);
@@ -178,12 +183,12 @@ public sealed class PaintBucketView : MonoBehaviour, IBeginDragHandler, IDragHan
             ? Instantiate(visualPrefab)
             : Instantiate(visualPrefab, visualParent);
         visualInstance.name = $"{visualPrefab.name} View";
+        ApplyReferenceVisualScale(visualPrefab);
         visualSpriteRenderers.AddRange(visualInstance.GetComponentsInChildren<SpriteRenderer>(true));
         CacheVisualRenderers();
 
         ApplyVisualSorting(false);
         ApplyBucketMaterials();
-        FitVisualToTargetHeight();
         PlayLoopParticles();
         SetVisualAlpha(1f);
         SyncVisualToSlot();
@@ -243,6 +248,7 @@ public sealed class PaintBucketView : MonoBehaviour, IBeginDragHandler, IDragHan
         displaySettings = settings;
         SubscribeDisplaySettings();
         RefreshSymbol();
+        QueueTextStyleRefresh();
         ApplyBucketMaterials();
     }
 
@@ -261,18 +267,38 @@ public sealed class PaintBucketView : MonoBehaviour, IBeginDragHandler, IDragHan
     public void SetConsumed(bool consumed)
     {
         isConsumed = consumed;
-        button.interactable = !consumed;
 
         if (consumed)
+        {
+            isReserved = false;
+            SetSelected(false);
+        }
+
+        RefreshAvailability();
+    }
+
+    /// <summary>물감통이 다음 사용 순서로 예약된 상태를 화면과 입력 상태에 반영한다.</summary>
+    /// <param name="reserved">true이면 물감통을 예약 상태로 표시하고 추가 입력을 막는다.</param>
+    public void SetReserved(bool reserved)
+    {
+        isReserved = reserved;
+
+        if (reserved)
         {
             SetSelected(false);
         }
 
-        gameObject.SetActive(!consumed);
+        RefreshAvailability();
+    }
+
+    private void RefreshAvailability()
+    {
+        button.interactable = !isConsumed && !isReserved;
+        gameObject.SetActive(!isConsumed && !isReserved);
 
         if (visualInstance != null)
         {
-            visualInstance.SetActive(!consumed);
+            visualInstance.SetActive(!isConsumed && !isReserved);
         }
     }
 
@@ -347,6 +373,12 @@ public sealed class PaintBucketView : MonoBehaviour, IBeginDragHandler, IDragHan
 
     private void LateUpdate()
     {
+        if (textStyleRefreshFramesRemaining > 0)
+        {
+            textStyleRefreshFramesRemaining--;
+            RefreshSymbol();
+        }
+
         if (!isDragging)
         {
             SyncVisualToSlot();
@@ -386,14 +418,7 @@ public sealed class PaintBucketView : MonoBehaviour, IBeginDragHandler, IDragHan
 
     private Color GetBucketTextColor()
     {
-        if (paintType == PaintType.Clear)
-        {
-            return Color.black;
-        }
-
-        return displaySettings?.ActivePalette != null
-            ? displaySettings.ActivePalette.GetSymbolColor(paintType)
-            : Color.white;
+        return Color.black;
     }
 
     private void ApplyTextAnchors(bool symbolEnabled)
@@ -453,14 +478,36 @@ public sealed class PaintBucketView : MonoBehaviour, IBeginDragHandler, IDragHan
             return;
         }
 
+        ApplyFontMaterial(text);
+
         text.color = textColor;
+        text.faceColor = textColor;
         text.alignment = TextAlignmentOptions.Center;
         text.enableAutoSizing = true;
         text.fontSizeMin = 18f;
         text.fontSizeMax = 32f;
         text.fontStyle = FontStyles.Bold;
-        text.outlineColor = GetReadableOutlineColor(textColor);
+        text.outlineColor = textColor;
         text.outlineWidth = textOutlineWidth;
+        text.UpdateMeshPadding();
+        text.ForceMeshUpdate();
+    }
+
+    private static void ApplyFontMaterial(TMP_Text text)
+    {
+        if (text.font == null || text.font.material == null)
+        {
+            return;
+        }
+
+        // 폰트를 교체한 프리팹에 이전 폰트 머티리얼 참조가 남아 있으면
+        // Face/Outline 색이 뒤집혀 보일 수 있어 현재 폰트의 기본 머티리얼로 정렬한다.
+        text.fontMaterial = text.font.material;
+    }
+
+    private void QueueTextStyleRefresh()
+    {
+        textStyleRefreshFramesRemaining = 2;
     }
 
     private Color GetReadableOutlineColor(Color textColor)
@@ -644,26 +691,47 @@ public sealed class PaintBucketView : MonoBehaviour, IBeginDragHandler, IDragHan
         };
     }
 
-    private void FitVisualToTargetHeight()
+    private void ApplyReferenceVisualScale(GameObject visualPrefab)
     {
-        Bounds bounds = CalculateVisualBounds();
+        GameObject referencePrefab = GetVisualScaleReferencePrefab(visualPrefab);
+        float referenceHeight = CalculateVisualBoundsHeight(referencePrefab);
 
-        if (bounds.size.y <= 0.0001f)
+        if (referenceHeight <= 0.0001f)
         {
             return;
         }
 
-        float scale = visualWorldHeight / bounds.size.y;
+        // Clear 전용 장식 렌더러가 크기 기준에 섞이지 않도록 RGB 기준 프리팹에서 계산한 배율을 모든 물감통에 공통 적용한다.
+        float scale = visualWorldHeight / referenceHeight;
         visualInstance.transform.localScale *= scale;
     }
 
-    private Bounds CalculateVisualBounds()
+    private GameObject GetVisualScaleReferencePrefab(GameObject fallbackPrefab)
     {
-        Renderer[] renderers = visualInstance.GetComponentsInChildren<Renderer>(true);
-        Bounds bounds = new(visualInstance.transform.position, Vector3.zero);
+        if (visualData == null)
+        {
+            return fallbackPrefab;
+        }
+
+        GameObject referencePrefab =
+            visualData.GetPrefab(VisualScaleReferencePaintType);
+
+        return referencePrefab != null
+            ? referencePrefab
+            : fallbackPrefab;
+    }
+
+    private static float CalculateVisualBoundsHeight(GameObject prefab)
+    {
+        if (prefab == null)
+        {
+            return 0f;
+        }
+
+        Bounds bounds = new(prefab.transform.position, Vector3.zero);
         bool hasBounds = false;
 
-        foreach (Renderer renderer in renderers)
+        foreach (Renderer renderer in prefab.GetComponentsInChildren<Renderer>(true))
         {
             if (!hasBounds)
             {
@@ -675,7 +743,7 @@ public sealed class PaintBucketView : MonoBehaviour, IBeginDragHandler, IDragHan
             bounds.Encapsulate(renderer.bounds);
         }
 
-        return bounds;
+        return hasBounds ? bounds.size.y : 0f;
     }
 
     private void PlayLoopParticles()
@@ -727,12 +795,14 @@ public sealed class PaintBucketView : MonoBehaviour, IBeginDragHandler, IDragHan
     private void HandlePaletteChanged(ColorPaletteSO palette)
     {
         RefreshSymbol();
+        QueueTextStyleRefresh();
         ApplyBucketMaterials();
     }
 
     private void HandleSymbolsEnabledChanged(bool enabled)
     {
         RefreshSymbol();
+        QueueTextStyleRefresh();
     }
 
     private void OnDestroy()

@@ -1107,7 +1107,7 @@ GameObject:
   - component: {fileID: 230329653}
   - component: {fileID: 230329652}
   m_Layer: 0
-  m_Name: GridTestController
+  m_Name: GridController
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1149,6 +1149,7 @@ MonoBehaviour:
     referenceCellSize: 1.704
     sortingLayer: GridPaintEffect
     playbackSpeed: 1.5
+    waveAdvanceLifetimeRatio: 0.7
   titleText: {fileID: 52109522}
   descriptionText: {fileID: 79163583}
 --- !u!4 &230329653
@@ -1280,6 +1281,14 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
+--- !u!222 &326828857
+CanvasRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 326828853}
+  m_CullTransparentMesh: 1
 --- !u!114 &326828858
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1290,17 +1299,9 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 294bf046b7184c108140724c2daa2610, type: 3}
-  m_Name:
+  m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Nan.UI.HUDToTitleButton
   button: {fileID: 326828855}
---- !u!222 &326828857
-CanvasRenderer:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 326828853}
-  m_CullTransparentMesh: 1
 --- !u!1 &502451670
 GameObject:
   m_ObjectHideFlags: 0
@@ -4214,9 +4215,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::SoundManager
   soundLibrary: {fileID: 11400000, guid: 6e24ad6af1a24a5aa3d22aa9d39fa74b, type: 2}
-  sfxSourceCount: 3
-  defaultBgmVolume: 0.325
-  defaultSfxVolume: 1
 --- !u!1 &2112713423
 GameObject:
   m_ObjectHideFlags: 0

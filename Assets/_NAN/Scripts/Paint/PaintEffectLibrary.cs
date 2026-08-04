@@ -36,6 +36,11 @@ public sealed class PaintEffectLibrary
     [Tooltip("페인트 파티클과 거리별 확산 연출의 재생 배속")]
     private float playbackSpeed = 1.5f;
 
+    [SerializeField]
+    [Range(0.1f, 1f)]
+    [Tooltip("즉시 시작하는 물감 퍼짐 파티클 수명 중 다음 거리 wave로 넘어가기 전에 기다릴 비율")]
+    private float waveAdvanceLifetimeRatio = 0.7f;
+
     /// <summary>현재 GridView 크기에 맞출 때 사용할 이펙트 제작 기준 셀 크기를 반환한다.</summary>
     public float ReferenceCellSize => Mathf.Max(referenceCellSize, 0.01f);
 
@@ -46,6 +51,9 @@ public sealed class PaintEffectLibrary
 
     /// <summary>파티클 시뮬레이션과 wave 진행에 함께 적용할 재생 배속을 반환한다.</summary>
     public float PlaybackSpeed => Mathf.Max(playbackSpeed, 0.1f);
+
+    /// <summary>물감 퍼짐 이펙트 수명 대비 다음 거리 wave를 시작할 시점 비율을 반환한다.</summary>
+    public float WaveAdvanceLifetimeRatio => Mathf.Clamp(waveAdvanceLifetimeRatio, 0.1f, 1f);
 
     /// <summary>범위 지우기 연출에 사용할 프리팹을 반환한다.</summary>
     public GameObject ClearPrefab => clear;
