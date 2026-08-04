@@ -1,10 +1,10 @@
 fileFormatVersion: 2
-guid: 04463c5e442964a40bb84a16909b101e
+guid: 52a6d1ab18077fd448e1ca3776005032
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: 1945457589090695926
-    second: T_puzzleFrame_0
+      213: 1633034581887075629
+    second: T_backButton_0
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -46,7 +46,7 @@ TextureImporter:
   nPOTScale: 0
   lightmap: 0
   compressionQuality: 50
-  spriteMode: 2
+  spriteMode: 1
   spriteExtrude: 1
   spriteMeshType: 1
   alignment: 0
@@ -113,13 +113,13 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: T_puzzleFrame_0
+      name: T_backButton_0
       rect:
         serializedVersion: 2
-        x: 0
-        y: 0
-        width: 1024
-        height: 1024
+        x: 23
+        y: 41
+        width: 202
+        height: 180
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -128,8 +128,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 6fab65bae57affa10800000000000000
-      internalID: 1945457589090695926
+      spriteID: d25ce4fcc44b9a610800000000000000
+      internalID: 1633034581887075629
       vertices: []
       indices: 
       edges: []
@@ -138,7 +138,7 @@ TextureImporter:
     customData: 
     physicsShape: []
     bones: []
-    spriteID: 
+    spriteID: 5e97eb03825dee720800000000000000
     internalID: 0
     vertices: []
     indices: 
@@ -148,7 +148,7 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      T_puzzleFrame_0: 1945457589090695926
+      T_backButton_0: 1633034581887075629
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 
