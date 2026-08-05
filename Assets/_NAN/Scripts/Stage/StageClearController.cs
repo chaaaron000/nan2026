@@ -12,6 +12,7 @@ public sealed class StageClearController : MonoBehaviour
     [SerializeField] private Button stageSelectButton;
     [SerializeField] private Button nextStageButton;
     [SerializeField] private StageCatalog stageCatalog;
+    [SerializeField] private StageSessionController stageSessionController;
 
     [Header("클리어 이펙트")]
     [SerializeField] private GameObject clearEffectPrefab;
@@ -23,14 +24,10 @@ public sealed class StageClearController : MonoBehaviour
     [SerializeField, Min(1f)] private float smallParticleSizeMultiplier = 2.5f;
     [SerializeField, Min(1f)] private float particleLifetimeMultiplier = 2f;
 
-    private StageSessionController stageSessionController;
     private GameObject activeClearEffect;
 
     private void Awake()
     {
-        stageSessionController = GetComponent<StageSessionController>();
-        stageSelectButton.onClick.AddListener(HandleStageSelectButtonClicked);
-        nextStageButton.onClick.AddListener(HandleNextStageButtonClicked);
         Hide();
     }
 
@@ -85,7 +82,10 @@ public sealed class StageClearController : MonoBehaviour
         return false;
     }
 
-    private void HandleNextStageButtonClicked()
+    /// <summary>
+    /// 현재 스테이지의 다음 스테이지를 같은 씬에서 불러오고 클리어 UI를 닫는다.
+    /// </summary>
+    public void LoadNextStage()
     {
         if (stageSessionController == null || !TryGetNextStage(stageSessionController.CurrentStage, out StageData nextStage))
         {
@@ -96,7 +96,10 @@ public sealed class StageClearController : MonoBehaviour
         stageSessionController.LoadStage(nextStage);
     }
 
-    private void HandleStageSelectButtonClicked()
+    /// <summary>
+    /// 타이틀 씬으로 이동한 뒤 스테이지 선택 화면이 열리도록 요청한다.
+    /// </summary>
+    public void ReturnToStageSelection()
     {
         if (SceneTransitionManager.Instance.LoadScene("Title"))
         {
@@ -141,16 +144,6 @@ public sealed class StageClearController : MonoBehaviour
 
     private void OnDestroy()
     {
-        if (stageSelectButton != null)
-        {
-            stageSelectButton.onClick.RemoveListener(HandleStageSelectButtonClicked);
-        }
-
-        if (nextStageButton != null)
-        {
-            nextStageButton.onClick.RemoveListener(HandleNextStageButtonClicked);
-        }
-
         Hide();
     }
 }

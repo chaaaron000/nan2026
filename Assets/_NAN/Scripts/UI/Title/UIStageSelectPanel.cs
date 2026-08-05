@@ -9,7 +9,7 @@ namespace Nan.UI
     /// </summary>
     public sealed class UIStageSelectPanel : MonoBehaviour
     {
-        private const string StageSceneName = "GridTestScene";
+        private const string StageSceneName = "StageScene";
 
         [SerializeField]
         private Button stageStartButton;

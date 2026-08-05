@@ -14,6 +14,9 @@ public sealed class PaintBucketView : MonoBehaviour, IBeginDragHandler, IDragHan
     private Button button;
 
     [SerializeField]
+    private RectTransform hitArea;
+
+    [SerializeField]
     private Image bucketImage;
 
     [SerializeField]
@@ -60,6 +63,9 @@ public sealed class PaintBucketView : MonoBehaviour, IBeginDragHandler, IDragHan
     private static readonly Vector2 SymbolModeRangeTextOffset = new(19f, 0f);
     private static readonly Vector2 SymbolTextOffset = new(-19f, 0f);
     private static readonly Vector2 InteractionSize = new(126f, 96f);
+    private const float HorizontalHitAreaExpansion = 5f;
+    private const float BottomHitAreaExpansion = 9f;
+    private const float TopHitAreaExpansion = 36f;
     private const float TextMinimumFontSize = 22f;
     private const float SymbolModeMaximumFontSize = 40f;
     private const float RangeOnlyMaximumFontSize = 44f;
@@ -106,6 +112,7 @@ public sealed class PaintBucketView : MonoBehaviour, IBeginDragHandler, IDragHan
         }
 
         button.onClick.AddListener(HandleButtonClicked);
+        ConfigureHitArea();
         ConfigureInteractionArea();
     }
 
@@ -205,6 +212,22 @@ public sealed class PaintBucketView : MonoBehaviour, IBeginDragHandler, IDragHan
     {
         visualData = newVisualData;
         ApplyBucketMaterials();
+    }
+
+    private void ConfigureHitArea()
+    {
+        if (hitArea == null)
+        {
+            return;
+        }
+
+        // 월드 비주얼의 중심이 UI 슬롯보다 위에 있으므로 윗부분의 판정 범위를 더 넉넉하게 확보한다.
+        hitArea.offsetMin = new Vector2(
+            -HorizontalHitAreaExpansion,
+            -BottomHitAreaExpansion);
+        hitArea.offsetMax = new Vector2(
+            HorizontalHitAreaExpansion,
+            TopHitAreaExpansion);
     }
 
     private void ConfigureInteractionArea()
