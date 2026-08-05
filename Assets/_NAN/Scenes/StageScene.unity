@@ -746,6 +746,14 @@ MonoBehaviour:
     waveAdvanceLifetimeRatio: 0.7
   titleText: {fileID: 52109522}
   descriptionText: {fileID: 79163583}
+  clearEffectPrefab: {fileID: 8905440043607677591, guid: 47de59cb11d565048913a1e2b6077c68, type: 3}
+  gridEaselRenderer: {fileID: 2147001002}
+  clearEffectReferenceDiameter: 10
+  clearEffectSortingLayer: GridBackground
+  clearEffectSortingOrder: -4
+  clearEffectLifetime: 6
+  clearEffectSmallParticleSizeMultiplier: 2.5
+  clearEffectParticleLifetimeMultiplier: 2
 --- !u!4 &230329653
 Transform:
   m_ObjectHideFlags: 0
