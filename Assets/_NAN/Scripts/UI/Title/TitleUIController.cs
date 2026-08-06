@@ -1,3 +1,4 @@
+using System;
 using AYellowpaper.SerializedCollections;
 using Cysharp.Threading.Tasks;
 using DG.Tweening;
@@ -96,9 +97,6 @@ namespace Nan.UI
             currentPanelCanvasGroup.interactable = true;
 
             isInitialized = true;
-            
-            SoundManager.Instance?.PlayBgm(
-                SoundKeys.TitleBgm);
         }
 
         private void OnEnable()
@@ -127,6 +125,11 @@ namespace Nan.UI
             // 패널은 레이아웃 안의 양의 좌표에 배치되므로, 해당 패널을 화면 원점에 맞추려면 루트를 반대로 이동해야 합니다.
             root.anchoredPosition = -currentPanel.tweenTargetPosition;
             initialPanelType = PanelType.MAIN;
+        }
+
+        private void Start()
+        {
+            SoundManager.Instance?.PlayBgm(SoundKeys.TitleBgm);
         }
 
         /// <summary>
