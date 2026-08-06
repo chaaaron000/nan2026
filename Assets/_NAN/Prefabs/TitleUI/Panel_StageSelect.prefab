@@ -596,8 +596,8 @@ MonoBehaviour:
   previewPrefab: {fileID: 5121520723357341649, guid: 398d6ad271ba62c45831fec50e4f2058, type: 3}
   stageCatalog: {fileID: 11400000, guid: e1a3c5d7f9024b16a8c0d2e4f6071829, type: 2}
   accessibilityDisplaySettings: {fileID: 900000000000000001}
-  previewPanelSpace: 3840
-  slideDuration: 0.5
+  previewPanelSpace: 1920
+  slideDuration: 0.8
   stageSlideEase: 15
 --- !u!114 &900000000000000001
 MonoBehaviour:

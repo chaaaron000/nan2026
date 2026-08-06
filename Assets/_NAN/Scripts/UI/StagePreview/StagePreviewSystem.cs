@@ -1,3 +1,5 @@
+using System;
+using System.Collections;
 using DG.Tweening;
 using UnityEngine;
 using UnityEngine.UI;
@@ -52,6 +54,16 @@ namespace Nan.UI
         private Sequence activeSlideTween;
 
         /// <summary>
+        /// 프리뷰 슬라이드 진행 상태가 변경될 때 현재 진행 여부를 알린다.
+        /// </summary>
+        public event Action<bool> SlideStateChanged;
+
+        /// <summary>
+        /// 프리뷰가 현재 슬라이드 중인지 반환한다.
+        /// </summary>
+        public bool IsSliding => isSliding;
+
+        /// <summary>
         /// 현재 화면 중앙에 선택된 스테이지 데이터를 가져옵니다.
         /// </summary>
         /// <param name="stageData">현재 선택된 스테이지 데이터입니다.</param>
@@ -104,7 +116,7 @@ namespace Nan.UI
 
             activeSlideTween?.Kill();
             activeSlideTween = null;
-            isSliding = false;
+            SetSliding(false);
             ArrangeAndBindAllPanels();
             UpdateNavigationButtons();
         }
@@ -201,7 +213,7 @@ namespace Nan.UI
                 return;
             }
 
-            isSliding = true;
+            SetSliding(true);
             UpdateNavigationButtons();
 
             float movement = -stageIndexDelta * previewPanelSpace;
@@ -216,8 +228,15 @@ namespace Nan.UI
             }
 
             activeSlideTween = sequence;
-            sequence.OnComplete(() => CompleteSlide(stageIndexDelta));
+            sequence.OnComplete(() => StartCoroutine(CompleteSlideAfterFrame(stageIndexDelta)));
             sequence.Play();
+        }
+
+        private IEnumerator CompleteSlideAfterFrame(int stageIndexDelta)
+        {
+            // 트윈 완료 프레임에는 목표 위치의 패널을 먼저 렌더링한 뒤 재활용한다.
+            yield return null;
+            CompleteSlide(stageIndexDelta);
         }
 
         private void CompleteSlide(int stageIndexDelta)
@@ -247,8 +266,19 @@ namespace Nan.UI
             int recycledSlotIndex = stageIndexDelta > 0 ? 2 : 0;
             BindPanel(recycledSlotIndex);
 
-            isSliding = false;
+            SetSliding(false);
             UpdateNavigationButtons();
+        }
+
+        private void SetSliding(bool sliding)
+        {
+            if (isSliding == sliding)
+            {
+                return;
+            }
+
+            isSliding = sliding;
+            SlideStateChanged?.Invoke(isSliding);
         }
 
         private void ArrangeAndBindAllPanels()

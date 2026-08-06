@@ -322,6 +322,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 4998771940396106574}
     m_Modifications:
+    - target: {fileID: 1283388452514700529, guid: 243c077e338e74f4ea8c6de48fa6587f, type: 3}
+      propertyPath: m_SizeDelta.y
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 2547283352807952817, guid: 243c077e338e74f4ea8c6de48fa6587f, type: 3}
       propertyPath: m_Name
       value: 'Panel_TitleMain '

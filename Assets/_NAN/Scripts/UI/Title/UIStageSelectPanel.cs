@@ -39,6 +39,8 @@ namespace Nan.UI
                 return;
             }
 
+            stageStartButton.interactable = !stagePreviewSystem.IsSliding;
+
             titleUIController = GetComponentInParent<TitleUIController>();
             if (titleUIController == null)
             {
@@ -52,6 +54,7 @@ namespace Nan.UI
 
             stageStartButton.onClick.AddListener(HandleStageStartButtonClicked);
             backToTitleButton.onClick.AddListener(HandleBackToTitleButtonClicked);
+            stagePreviewSystem.SlideStateChanged += HandleSlideStateChanged;
         }
 
         private void HandleStageStartButtonClicked()
@@ -70,6 +73,11 @@ namespace Nan.UI
             titleUIController.ChangePanel(TitleUIController.PanelType.MAIN);
         }
 
+        private void HandleSlideStateChanged(bool isSliding)
+        {
+            stageStartButton.interactable = !isSliding;
+        }
+
         private void OnDestroy()
         {
             if (stageStartButton != null)
@@ -80,6 +88,11 @@ namespace Nan.UI
             if (backToTitleButton != null)
             {
                 backToTitleButton.onClick.RemoveListener(HandleBackToTitleButtonClicked);
+            }
+
+            if (stagePreviewSystem != null)
+            {
+                stagePreviewSystem.SlideStateChanged -= HandleSlideStateChanged;
             }
         }
     }

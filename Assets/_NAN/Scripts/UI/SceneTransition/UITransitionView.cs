@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System;
+using UnityEngine;
 using UnityEngine.UI;
 using System.Threading;
 using Cysharp.Threading.Tasks;
@@ -24,6 +25,12 @@ namespace Nan.UI
 
         private Tween activeTween;
 
+        private void OnDisable()
+        {
+            activeTween?.Kill();
+            activeTween = null;
+        }
+
         /// <summary>
         /// 전환 이미지의 투명도를 연출 없이 즉시 설정합니다.
         /// </summary>
@@ -32,10 +39,12 @@ namespace Nan.UI
         {
             activeTween?.Kill();
             activeTween = null;
+            
+            image.material.SetFloat("_Progress", 1 - alpha);
 
-            Color color = image.color;
-            color.a = Mathf.Clamp01(alpha);
-            image.color = color;
+            // Color color = image.color;
+            // color.a = Mathf.Clamp01(alpha);
+            // image.color = color;
         }
 
         /// <summary>
@@ -46,18 +55,27 @@ namespace Nan.UI
         public async UniTask FadeToAsync(float alpha, CancellationToken cancellationToken)
         {
             activeTween?.Kill();
+            image.gameObject.SetActive(true);
 
             float targetAlpha = Mathf.Clamp01(alpha);
-            bool isCovering = targetAlpha > image.color.a;
+            Material material = image.material;
+            float targetProgress = 1f - targetAlpha;
+            bool isCovering = targetProgress < material.GetFloat("_Progress");
             float duration = isCovering ? coverDuration : revealDuration;
             Ease ease = isCovering ? Ease.Linear : Ease.OutQuad;
 
-            Tween tween = image.DOFade(targetAlpha, duration).SetEase(ease).SetUpdate(true);
+            Tween tween = material.DOFloat(targetProgress, "_Progress", duration).SetEase(ease).SetUpdate(true);
             activeTween = tween;
 
             try
             {
                 await tween.AsyncWaitForCompletion().AsUniTask().AttachExternalCancellation(cancellationToken);
+
+                // 완전히 투명해진 전환 이미지는 렌더 대상에서 제거해 다음 UI를 가리지 않습니다.
+                if (activeTween == tween && targetAlpha <= 0f)
+                {
+                    image.gameObject.SetActive(false);
+                }
             }
             finally
             {
@@ -71,12 +89,6 @@ namespace Nan.UI
                     activeTween = null;
                 }
             }
-        }
-
-        private void OnDisable()
-        {
-            activeTween?.Kill();
-            activeTween = null;
         }
     }
 }
