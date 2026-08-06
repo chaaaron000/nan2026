@@ -7,8 +7,8 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: M_SceneTransition
-  m_Shader: {fileID: -6465566751694194690, guid: 277cef9c68b0aca44bcb88f87fecb7cd, type: 3}
+  m_Name: M_SceneTransition 1
+  m_Shader: {fileID: -6465566751694194690, guid: 1363b716685f7e5439961a6ffae487bd, type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
   m_ValidKeywords: []
@@ -45,9 +45,18 @@ Material:
         m_Offset: {x: 0, y: 0}
     m_Ints: []
     m_Floats:
+    - _ColorMask: 15
     - _Progress: 0.333
+    - _Stencil: 0
+    - _StencilComp: 8
+    - _StencilOp: 0
+    - _StencilReadMask: 255
+    - _StencilWriteMask: 255
+    - _UIMaskSoftnessX: 1
+    - _UIMaskSoftnessY: 1
     m_Colors:
     - White: {r: 1, g: 1, b: 1, a: 1}
+    - _ClipRect: {r: 0, g: 0, b: 0, a: 0}
     - _Color: {r: 0.5742702, g: 0.8396226, b: 0.75608575, a: 1}
   m_BuildTextureStacks: []
   m_AllowLocking: 1

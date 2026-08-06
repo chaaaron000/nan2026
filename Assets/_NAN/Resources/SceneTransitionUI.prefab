@@ -265,8 +265,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Nan.UI.UITransitionView
   image: {fileID: 1946406593779556199}
-  coverDuration: 0.3
-  revealDuration: 0.5
+  coverDuration: 1
+  revealDuration: 1
 --- !u!114 &1946406593779556199
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -279,7 +279,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
-  m_Material: {fileID: 2100000, guid: 9369d6c4cf55b53439a7f72663142dba, type: 2}
+  m_Material: {fileID: 2100000, guid: f2871eea5718eba43b87724405d1ddae, type: 2}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_RaycastTarget: 0
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
