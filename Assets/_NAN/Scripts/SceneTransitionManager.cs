@@ -99,6 +99,7 @@ public sealed class SceneTransitionManager : LazyPersistentSingleton<SceneTransi
         sceneReadyReceived = false;
         targetSceneName = sceneName;
 
+        SoundManager.Instance?.PlaySfx(SoundKeys.SceneTransition);
         RunTransitionAsync(sceneName).Forget();
         return true;
     }

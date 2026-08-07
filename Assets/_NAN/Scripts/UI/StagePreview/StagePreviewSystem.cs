@@ -92,6 +92,8 @@ namespace Nan.UI
 
             prevButton.onClick.AddListener(HandlePrevButtonClicked);
             nextButton.onClick.AddListener(HandleNextButtonClicked);
+            UIButtonSound.Attach(prevButton);
+            UIButtonSound.Attach(nextButton);
 
             RestoreSelectedStageIndex();
 

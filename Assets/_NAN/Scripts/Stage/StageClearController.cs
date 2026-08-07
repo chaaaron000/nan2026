@@ -28,6 +28,8 @@ public sealed class StageClearController : MonoBehaviour
 
     private void Awake()
     {
+        Nan.UI.UIButtonSound.Attach(stageSelectButton);
+        Nan.UI.UIButtonSound.Attach(nextStageButton);
         Hide();
     }
 
@@ -40,6 +42,7 @@ public sealed class StageClearController : MonoBehaviour
         nextStageButton.gameObject.SetActive(TryGetNextStage(clearedStage, out _));
         clearUiCanvasGroup.alpha = 1f;
         clearUiRoot.gameObject.SetActive(true);
+        SoundManager.Instance?.PlaySfx(SoundKeys.StageClear);
         PlayClearEffect();
     }
 

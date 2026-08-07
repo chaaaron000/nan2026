@@ -54,6 +54,8 @@ namespace Nan.UI
 
             stageStartButton.onClick.AddListener(HandleStageStartButtonClicked);
             backToTitleButton.onClick.AddListener(HandleBackToTitleButtonClicked);
+            UIButtonSound.Attach(stageStartButton);
+            UIButtonSound.Attach(backToTitleButton);
             stagePreviewSystem.SlideStateChanged += HandleSlideStateChanged;
         }
 

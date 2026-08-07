@@ -23,6 +23,7 @@ namespace Nan.UI
             }
 
             button.onClick.AddListener(HandleButtonClicked);
+            UIButtonSound.Attach(button);
         }
 
         private void HandleButtonClicked()

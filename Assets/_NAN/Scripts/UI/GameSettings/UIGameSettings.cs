@@ -103,6 +103,8 @@ namespace Nan.UI
         {
             confirmButton.onClick.AddListener(HandleConfirmButtonClicked);
             cancelButton.onClick.AddListener(HandleCancelButtonClicked);
+            UIButtonSound.Attach(confirmButton);
+            UIButtonSound.Attach(cancelButton);
             masterVolumeSlider.onValueChanged.AddListener(HandleMasterVolumeChanged);
             bgmVolumeSlider.onValueChanged.AddListener(HandleBgmVolumeChanged);
             sfxVolumeSlider.onValueChanged.AddListener(HandleSfxVolumeChanged);

@@ -22,6 +22,14 @@ MonoBehaviour:
     clip: {fileID: 8300000, guid: 315d4412f87f4094fb52870795a00bfa, type: 3}
   - key: undo
     clip: {fileID: 8300000, guid: 99925079cd37a0345aaddd2b826116ff, type: 3}
+  - key: ui_button_hover
+    clip: {fileID: 8300000, guid: 392b9365bd36f6b428b79734741d74db, type: 3}
+  - key: ui_button_click
+    clip: {fileID: 8300000, guid: 95c801503a5a2924c8801fc383645ce7, type: 3}
+  - key: scene_transition
+    clip: {fileID: 8300000, guid: d0d5172236fe03c43bf5c7a12e48383e, type: 3}
+  - key: stage_clear
+    clip: {fileID: 8300000, guid: 1ac96d3365a35c046a3aaa6a202ecaeb, type: 3}
   - key: stage_bgm
     clip: {fileID: 8300000, guid: e30b62dfca1e9984087d30a2b39992a6, type: 3}
   - key: title_bgm

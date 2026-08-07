@@ -36,6 +36,8 @@ namespace Nan.UI
 
             startButton.onClick.AddListener(HandleStartButtonClicked);
             settingsButton.onClick.AddListener(HandleSettingsButtonClicked);
+            UIButtonSound.Attach(startButton);
+            UIButtonSound.Attach(settingsButton);
         }
 
         private void HandleStartButtonClicked()
