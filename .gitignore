@@ -14,7 +14,9 @@
 /[Ll]ibrary/
 /[Tt]emp/
 /[Oo]bj/
-/[Bb]uild/
+/[Bb]uild/*
+!/Build/WebGL/
+!/Build/WebGL/**
 /[Bb]uilds/
 /[Ll]ogs/
 /[Uu]ser[Ss]ettings/
